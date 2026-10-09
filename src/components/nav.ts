@@ -1,4 +1,4 @@
-export type NavId = 'overview' | 'matches' | 'statistics' | 'settings';
+export type NavId = 'overview' | 'matches' | 'profile' | 'statistics' | 'settings';
 
 export interface NavItem {
   id: NavId;
@@ -9,6 +9,7 @@ export interface NavItem {
 
 export const NAV_ITEMS: NavItem[] = [
   { id: 'overview', label: 'Overview', enabled: true },
+  { id: 'profile', label: 'Profile', enabled: true },
   { id: 'matches', label: 'Matches', enabled: false },
   { id: 'statistics', label: 'Statistics', enabled: false },
   { id: 'settings', label: 'Settings', enabled: false },

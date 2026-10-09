@@ -1,9 +1,10 @@
 import { BrandLogo } from './BrandLogo';
 import { NAV_ITEMS, type NavId } from './nav';
-import { MatchesIcon, OverviewIcon, SettingsIcon, StatisticsIcon } from './icons';
+import { MatchesIcon, OverviewIcon, SettingsIcon, StatisticsIcon, UserIcon } from './icons';
 
 const NAV_ICONS: Record<NavId, typeof OverviewIcon> = {
   overview: OverviewIcon,
+  profile: UserIcon,
   matches: MatchesIcon,
   statistics: StatisticsIcon,
   settings: SettingsIcon,
