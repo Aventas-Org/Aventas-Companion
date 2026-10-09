@@ -1,8 +1,92 @@
 import { StatCard } from '../components/StatCard';
 import { InfoCard } from '../components/InfoCard';
 import { CrosshairIcon, GamepadIcon, TrophyIcon } from '../components/icons';
+import { useValorantStatus } from '../hooks/useValorantStatus';
 
 export function OverviewPage() {
+  const valorantStatus = useValorantStatus();
+
+  // Determine card content based on status phase
+  let statusDescription =
+    'Aventas Companion monitors your VALORANT session and surfaces match context.';
+  let statusAccent: 'purple' | 'slate' | 'green' | 'amber' = 'slate';
+  let statusFooter = (
+    <div className="flex items-center justify-between">
+      <span className="flex items-center gap-2 text-xs text-slate-500">
+        <span className="h-2 w-2 animate-pulse rounded-full bg-slate-600" />
+        Checking game status...
+      </span>
+      <span className="rounded-md bg-white/5 px-2 py-1 text-[11px] font-medium text-slate-400">
+        v0.1.0
+      </span>
+    </div>
+  );
+
+  if (valorantStatus.phase === 'ready') {
+    const { status, processName } = valorantStatus.response;
+    if (status === 'running') {
+      statusDescription =
+        'VALORANT is currently running on your PC. Aventas Companion is actively monitoring your session.';
+      statusAccent = 'green';
+      statusFooter = (
+        <div className="flex items-center justify-between">
+          <span className="flex items-center gap-2 text-xs text-emerald-400">
+            <span className="h-2 w-2 rounded-full bg-emerald-500" />
+            Game client running ({processName ?? 'VALORANT.exe'})
+          </span>
+          <span className="rounded-md bg-emerald-500/10 px-2 py-1 text-[11px] font-medium text-emerald-300">
+            Active
+          </span>
+        </div>
+      );
+    } else if (status === 'not_running') {
+      statusDescription =
+        'Aventas Companion monitors your VALORANT session and surfaces match context. No game client detected right now.';
+      statusAccent = 'purple';
+      statusFooter = (
+        <div className="flex items-center justify-between">
+          <span className="flex items-center gap-2 text-xs text-slate-500">
+            <span className="h-2 w-2 rounded-full bg-slate-600" />
+            Game client not running
+          </span>
+          <span className="rounded-md bg-white/5 px-2 py-1 text-[11px] font-medium text-slate-400">
+            v0.1.0
+          </span>
+        </div>
+      );
+    } else {
+      statusDescription =
+        'VALORANT process detection is currently unavailable. Ensure the application is running with appropriate permissions.';
+      statusAccent = 'amber';
+      statusFooter = (
+        <div className="flex items-center justify-between">
+          <span className="flex items-center gap-2 text-xs text-amber-400">
+            <span className="h-2 w-2 rounded-full bg-amber-500" />
+            Detection unavailable
+          </span>
+          <span className="rounded-md bg-amber-500/10 px-2 py-1 text-[11px] font-medium text-amber-300">
+            Warning
+          </span>
+        </div>
+      );
+    }
+  } else if (valorantStatus.phase === 'error') {
+    statusDescription =
+      'Failed to communicate with the desktop companion service. Process detection is offline.';
+    statusAccent = 'amber';
+    statusFooter = (
+      <div className="flex items-center justify-between">
+        <span className="flex items-center gap-2 text-xs text-amber-400">
+          <span className="h-2 w-2 rounded-full bg-amber-500" />
+          Service offline
+        </span>
+        <span className="rounded-md bg-amber-500/10 px-2 py-1 text-[11px] font-medium text-amber-300">
+          Error
+        </span>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-1 flex-col gap-6 p-6">
       {/* Welcome header */}
@@ -32,20 +116,10 @@ export function OverviewPage() {
         <div className="xl:col-span-2">
           <InfoCard
             title="VALORANT Game Status"
-            description="Aventas Companion monitors your VALORANT session and surfaces match context. No game client detected right now."
+            description={statusDescription}
             icon={<GamepadIcon />}
-            accent="purple"
-            footer={
-              <div className="flex items-center justify-between">
-                <span className="flex items-center gap-2 text-xs text-slate-500">
-                  <span className="h-2 w-2 rounded-full bg-slate-600" />
-                  Game client not running
-                </span>
-                <span className="rounded-md bg-white/5 px-2 py-1 text-[11px] font-medium text-slate-400">
-                  v0.1.0
-                </span>
-              </div>
-            }
+            accent={statusAccent}
+            footer={statusFooter}
           />
         </div>
 
