@@ -1,0 +1,86 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Node dependencies
+node_modules
+.pnpm-store
+
+# Vite
+vite.config.ts-coverage
+.vite
+dist
+dist-electron
+build
+*.tsbuildinfo
+
+# Tauri
+src-tauri/target
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+.env.development
+.env.production
+.env.staging
+.env.test
+.env.*.local
+
+# Secrets
+secrets
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+id_rsa
+id_rsa.pub
+*.ppk
+
+# OS
+.DS_Store
+Thumbs.db
+$RECYCLE.BIN/
+ehthumbs.db
+desktop.ini
+
+# Logs and databases
+*.log
+*.sqlite
+*.db
+
+# Coverage
+coverage
+.coverage
+htmlcov
+.nyc_output
+
+# TypeScript declaration
+*.d.ts
+
+# ESLint cache
+.eslintcache
+
+# Prettier cache
+.prettiercache
+
+# Misc
+*.log
+*.pid
+*.seed
+*.locky
+.DS_Store
+Thumbs.db

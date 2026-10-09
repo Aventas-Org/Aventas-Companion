@@ -1,0 +1,9 @@
+{
+  "default": {
+    "identifier": "default",
+    "description": "Default capabilities for Aventas Companion",
+    "local": true,
+    "windows": ["main"],
+    "permissions": ["core:default", "opener:default"]
+  }
+}
