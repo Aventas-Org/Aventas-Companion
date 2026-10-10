@@ -1,0 +1,40 @@
+.pbar {
+  width: 380px;
+}
+
+.pbar__track {
+  position: relative;
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--bg-surface, #131A22);
+  border: 1px solid var(--border, #273240);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.pbar__fill {
+  position: relative;
+  height: 100%;
+  border-radius: 999px;
+  overflow: hidden;
+  background: linear-gradient(90deg, #00A8D6 0%, #00E5FF 55%, #38F6FF 100%);
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.5);
+  transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.pbar__fill::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(105deg, transparent 30%, rgba(255, 255, 255, 0.6) 50%, transparent 70%);
+  background-size: 220% 100%;
+  background-repeat: no-repeat;
+  background-position: 160% 0;
+  animation: pbar-shimmer 2.2s ease-in-out infinite;
+}
+
+@keyframes pbar-shimmer {
+  to { background-position: -60% 0; }
+}

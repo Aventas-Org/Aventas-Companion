@@ -1,0 +1,157 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <radialGradient id="bg-vignette" cx="50%" cy="50%" r="75%">
+      <stop offset="0%"  stop-color="#131A22"/>
+      <stop offset="60%" stop-color="#0B0F14"/>
+      <stop offset="100%" stop-color="#06080B"/>
+    </radialGradient>
+
+    <radialGradient id="bg-core-glow" cx="50%" cy="46%" r="38%">
+      <stop offset="0%" stop-color="#00E5FF" stop-opacity="0.28"/>
+      <stop offset="55%" stop-color="#00A8D6" stop-opacity="0.10"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+
+    <radialGradient id="bg-ring-glow" cx="50%" cy="46%" r="52%">
+      <stop offset="0%" stop-color="#00E5FF" stop-opacity="0"/>
+      <stop offset="62%" stop-color="#00E5FF" stop-opacity="0.55"/>
+      <stop offset="80%" stop-color="#38F6FF" stop-opacity="0.03"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+
+    <linearGradient id="bg-shift-grad" x1="0%" y1="0%" x2="100%" y2="60%">
+      <stop offset="0%"   stop-color="#00E5FF" stop-opacity="0"/>
+      <stop offset="35%"  stop-color="#00E5FF" stop-opacity="0.10"/>
+      <stop offset="50%"  stop-color="#38F6FF" stop-opacity="0.14"/>
+      <stop offset="65%"  stop-color="#00A8D6" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#00E5FF" stop-opacity="0"/>
+    </linearGradient>
+
+    <linearGradient id="beam" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"  stop-color="#00A8D6" stop-opacity="0"/>
+      <stop offset="48%" stop-color="#00E5FF" stop-opacity="0.85"/>
+      <stop offset="50%" stop-color="#38F6FF" stop-opacity="1"/>
+      <stop offset="52%" stop-color="#00E5FF" stop-opacity="0.85"/>
+      <stop offset="100%" stop-color="#00A8D6" stop-opacity="0"/>
+    </linearGradient>
+
+    <linearGradient id="beam-soft" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#00A8D6" stop-opacity="0"/>
+      <stop offset="45%"  stop-color="#00E5FF" stop-opacity="0.22"/>
+      <stop offset="55%"  stop-color="#38F6FF" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#00A8D6" stop-opacity="0"/>
+    </linearGradient>
+
+    <filter id="bloom" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="14"/>
+    </filter>
+
+    <pattern id="grid" width="90" height="90" patternUnits="userSpaceOnUse">
+      <path d="M90 0 H0 V90" fill="none" stroke="#273240" stroke-opacity="0.5" stroke-width="1"/>
+    </pattern>
+
+    <pattern id="dotgrid" width="22" height="22" patternUnits="userSpaceOnUse">
+      <circle cx="1.4" cy="1.4" r="1.4" fill="#38F6FF" fill-opacity="0.35"/>
+    </pattern>
+  </defs>
+
+  <rect width="1600" height="900" fill="url(#bg-vignette)"/>
+  <rect class="bg-grid" width="1600" height="900" fill="url(#grid)"/>
+
+  <rect class="bg-core" width="1600" height="900" fill="url(#bg-core-glow)"/>
+  <rect class="bg-ring" width="1600" height="900" fill="url(#bg-ring-glow)"/>
+
+  <rect class="bg-shift" x="-250" y="-100" width="2100" height="1100" fill="url(#bg-shift-grad)"/>
+
+  <g class="bg-beam bg-beam--1">
+    <path d="M-100 1000 L520 -100" stroke="url(#beam)" stroke-width="2.5" fill="none"/>
+    <path d="M-60 1000 L560 -100" stroke="url(#beam-soft)" stroke-width="80" fill="none" filter="url(#bloom)" opacity="0.85"/>
+  </g>
+  <g class="bg-beam bg-beam--2">
+    <path d="M-220 1000 L420 -100" stroke="url(#beam-soft)" stroke-width="44" fill="none" filter="url(#bloom)" opacity="0.6"/>
+  </g>
+  <g class="bg-beam bg-beam--3">
+    <path d="M1700 -100 L1150 1000" stroke="url(#beam)" stroke-width="2.5" fill="none"/>
+    <path d="M1740 -100 L1190 1000" stroke="url(#beam-soft)" stroke-width="80" fill="none" filter="url(#bloom)" opacity="0.85"/>
+  </g>
+  <g class="bg-beam bg-beam--4">
+    <path d="M1560 -100 L1030 1000" stroke="url(#beam-soft)" stroke-width="38" fill="none" filter="url(#bloom)" opacity="0.5"/>
+  </g>
+
+  <path class="bg-pulse bg-pulse--1" d="M-100 1000 L520 -100" stroke="#38F6FF" stroke-width="3" fill="none"
+        stroke-linecap="round" pathLength="100" stroke-dasharray="5 95"/>
+  <path class="bg-pulse bg-pulse--2" d="M1700 -100 L1150 1000" stroke="#38F6FF" stroke-width="3" fill="none"
+        stroke-linecap="round" pathLength="100" stroke-dasharray="5 95"/>
+
+  <g class="bg-orbit" style="transform-origin:800px 430px;">
+    <circle cx="800" cy="430" r="330" fill="none" stroke="#00E5FF" stroke-opacity="0.18" stroke-width="1.2"/>
+    <circle cx="800" cy="430" r="330" fill="none" stroke="#38F6FF" stroke-opacity="0.55" stroke-width="2.5"
+            stroke-dasharray="40 2030" stroke-linecap="round"/>
+  </g>
+  <g class="bg-orbit-rev" style="transform-origin:800px 430px;">
+    <circle cx="800" cy="430" r="270" fill="none" stroke="#00A8D6" stroke-opacity="0.16" stroke-width="1"
+            stroke-dasharray="3 9"/>
+    <circle cx="800" cy="430" r="270" fill="none" stroke="#38F6FF" stroke-opacity="0.7" stroke-width="2.5"
+            stroke-dasharray="26 1670" stroke-linecap="round"/>
+  </g>
+  <circle cx="800" cy="430" r="430" fill="none" stroke="#00A8D6" stroke-opacity="0.08" stroke-width="1"/>
+
+  <path class="bg-orbit-rev" style="transform-origin:1300px 900px;"
+        d="M1040 900 A260 260 0 0 1 1300 640" fill="none" stroke="#00E5FF" stroke-opacity="0.28" stroke-width="1.4"/>
+  <path d="M1080 900 A220 220 0 0 1 1300 680" fill="none" stroke="#00A8D6" stroke-opacity="0.12" stroke-width="1" stroke-dasharray="2 7"/>
+
+  <g stroke="#00E5FF" stroke-opacity="0.28" fill="none" stroke-width="1.4">
+    <path d="M1375 0 V150"/>
+    <path d="M1540 0 V90"/>
+    <path d="M1310 150 H1700"/>
+    <path d="M1400 90 H1700"/>
+  </g>
+  <rect x="1373" y="147" width="4" height="18" fill="#38F6FF" class="bg-node"/>
+
+  <g stroke="#00E5FF" stroke-opacity="0.22" fill="none" stroke-width="1.4">
+    <path d="M95 355 V590"/>
+    <path d="M95 355 H420"/>
+  </g>
+
+  <g class="bg-node">
+    <rect x="1105" y="432" width="52" height="5" fill="#00E5FF" opacity="0.8"/>
+    <rect x="455"  y="703" width="85" height="7" fill="#38F6FF" opacity="0.7"/>
+  </g>
+
+  <g stroke="#38F6FF" stroke-opacity="0.5" stroke-width="1.6" class="bg-node">
+    <path d="M392 540 v22 M381 551 h22"/>
+    <path d="M95 492 v14 M88 499 h14"/>
+  </g>
+
+  <g fill="#38F6FF" class="bg-node">
+    <path d="M1225 320 l10 4 -10 4 z"/>
+    <path d="M335 708 l9 4 -9 4 z"/>
+  </g>
+
+  <g class="bg-dots bg-dots--a"><rect x="60"  y="115" width="105" height="105" fill="url(#dotgrid)"/></g>
+  <g class="bg-dots bg-dots--b"><rect x="620" y="105" width="90"  height="90"  fill="url(#dotgrid)"/></g>
+  <g class="bg-dots bg-dots--c"><rect x="150" y="795" width="100" height="100" fill="url(#dotgrid)"/></g>
+  <g class="bg-dots bg-dots--d"><rect x="1160" y="585" width="80" height="80" fill="url(#dotgrid)"/></g>
+  <g class="bg-dots bg-dots--e"><rect x="1330" y="790" width="70" height="70" fill="url(#dotgrid)"/></g>
+  <g class="bg-dots bg-dots--f"><rect x="1130" y="210" width="60" height="60" fill="url(#dotgrid)"/></g>
+
+  <g fill="#38F6FF">
+    <circle class="bg-p bg-p--1" cx="360"  cy="240" r="2.2" opacity="0.55"/>
+    <circle class="bg-p bg-p--2" cx="1240" cy="520" r="1.8" opacity="0.55"/>
+    <circle class="bg-p bg-p--3" cx="520"  cy="640" r="2.4" opacity="0.55"/>
+    <circle class="bg-p bg-p--4" cx="1040" cy="200" r="1.6" opacity="0.55"/>
+    <circle class="bg-p bg-p--5" cx="760"  cy="120" r="2.0" opacity="0.55"/>
+    <circle class="bg-p bg-p--6" cx="210"  cy="470" r="1.7" opacity="0.55"/>
+    <circle class="bg-p bg-p--7" cx="1420" cy="350" r="2.1" opacity="0.55"/>
+    <circle class="bg-p bg-p--8" cx="900"  cy="720" r="1.9" opacity="0.55"/>
+  </g>
+
+  <g class="bg-node">
+    <path d="M1232 222 V310" stroke="#38F6FF" stroke-opacity="0.45" stroke-width="2" stroke-dasharray="1 9" stroke-linecap="round"/>
+  </g>
+
+  <g stroke="#00E5FF" stroke-opacity="0.25" fill="none" stroke-width="1.4">
+    <path d="M1315 885 H1495"/>
+    <path d="M1430 885 V900"/>
+  </g>
+</svg>
