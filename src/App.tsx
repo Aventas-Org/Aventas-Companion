@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { OverviewPage } from './pages/OverviewPage';
 import { ProfilePage } from './pages/ProfilePage';
+import { MatchHistoryPage } from './pages/MatchHistoryPage';
 import type { NavId } from './components/nav';
 
 import './App.css';
@@ -15,7 +16,8 @@ function App() {
       <main className="flex-1 overflow-y-auto">
         {activeNav === 'overview' && <OverviewPage />}
         {activeNav === 'profile' && <ProfilePage />}
-        {activeNav !== 'overview' && activeNav !== 'profile' && (
+        {activeNav === 'matches' && <MatchHistoryPage />}
+        {activeNav !== 'overview' && activeNav !== 'profile' && activeNav !== 'matches' && (
           <div className="flex h-full items-center justify-center p-6">
             <div className="max-w-md text-center">
               <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-purple-500/10 text-purple-300">
@@ -38,8 +40,8 @@ function App() {
                 {activeNav.charAt(0).toUpperCase() + activeNav.slice(1)}
               </h2>
               <p className="mt-1 text-sm text-slate-500">
-                This section is coming soon. Overview and Profile are the only active views in this
-                build.
+                This section is coming soon. Overview, Profile, and Matches are the active views in
+                this build.
               </p>
             </div>
           </div>
