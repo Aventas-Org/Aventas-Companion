@@ -1,4 +1,5 @@
 import { BrandLogo } from './BrandLogo';
+import { OverlayControl } from './OverlayControl';
 import { NAV_ITEMS, type NavId } from './nav';
 import {
   BenchmarkIcon,
@@ -78,9 +79,12 @@ export function Sidebar({ active, onNavigate }: SidebarProps) {
         })}
       </nav>
 
-      <div className="mt-6 rounded-lg border border-white/5 bg-white/[0.02] px-3 py-3">
-        <p className="text-xs font-medium text-slate-400">Development Build</p>
-        <p className="mt-0.5 text-[11px] text-slate-600">v0.1.0</p>
+      <div className="mt-6 flex flex-col gap-3">
+        <OverlayControl />
+        <div className="rounded-lg border border-white/5 bg-white/[0.02] px-3 py-3">
+          <p className="text-xs font-medium text-slate-400">Development Build</p>
+          <p className="mt-0.5 text-[11px] text-slate-600">v0.1.0</p>
+        </div>
       </div>
     </aside>
   );

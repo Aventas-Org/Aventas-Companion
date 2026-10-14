@@ -10,6 +10,7 @@
   "app": {
     "windows": [
       {
+        "label": "main",
         "title": "Aventas Companion",
         "width": 1440,
         "height": 900,
@@ -24,6 +25,24 @@
         "focus": true,
         "maximized": false,
         "center": true
+      },
+      {
+        "label": "overlay",
+        "title": "Aventas Overlay",
+        "url": "index.html?view=overlay",
+        "width": 1920,
+        "height": 1080,
+        "resizable": false,
+        "fullscreen": true,
+        "decorations": false,
+        "transparent": true,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "shadow": false,
+        "focus": false,
+        "visible": false,
+        "maximized": false,
+        "center": false
       }
     ],
     "security": {
