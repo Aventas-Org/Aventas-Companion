@@ -1,3 +1,39 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/**
+ * Aventas palette. Kept as CSS variables as well as Tailwind theme colours so
+ * native elements (scrollbars, form controls, selection) share the same tokens.
+ */
+:root {
+  --color-app: #0b0c0e;
+  --color-panel: #16181c;
+  --color-line: #24272d;
+  --color-ink: #f3f4f6;
+  --color-ink-muted: #9ca3af;
+  --color-accent: #ff4655;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--color-app);
+  color: var(--color-ink);
+}
+
+/* Keep scrollbars in the same charcoal family instead of the OS default. */
+* {
+  scrollbar-color: var(--color-line) transparent;
+  scrollbar-width: thin;
+}
+
+::selection {
+  background-color: rgba(255, 70, 85, 0.3);
+}

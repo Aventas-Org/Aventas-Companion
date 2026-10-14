@@ -34,8 +34,8 @@ export function MatchHistoryPage() {
     <div className="flex flex-1 flex-col gap-6 p-6">
       {/* Header */}
       <div>
-        <h2 className="text-2xl font-semibold tracking-tight text-white">Match History</h2>
-        <p className="mt-1 text-sm text-slate-400">
+        <h2 className="text-2xl font-semibold tracking-tight text-ink">Match History</h2>
+        <p className="mt-1 text-sm text-ink-muted">
           Review your recent VALORANT matches. Connect your Riot account to populate your real
           history.
         </p>
@@ -47,7 +47,7 @@ export function MatchHistoryPage() {
       {/* Filters + count */}
       <div className="flex flex-wrap items-center gap-4">
         <MatchFilterTabs value={filter} onChange={handleFilterChange} />
-        <span className="text-sm text-slate-500">
+        <span className="text-sm text-ink-muted">
           {matches.length} {matches.length === 1 ? 'match' : 'matches'}
         </span>
       </div>
@@ -71,8 +71,8 @@ export function MatchHistoryPage() {
             {selectedMatch ? (
               <MatchDetailPanel match={selectedMatch} onClose={handleClearSelection} />
             ) : (
-              <div className="rounded-lg border border-white/5 bg-white/[0.02] p-6 text-center">
-                <p className="text-sm text-slate-500">Select a match to view details.</p>
+              <div className="rounded-lg border border-line bg-panel p-6 text-center">
+                <p className="text-sm text-ink-muted">Select a match to view details.</p>
               </div>
             )}
           </div>
@@ -91,8 +91,8 @@ function EmptyState({ filter }: { filter: MatchFilter }) {
         : 'No matches recorded. Connect your Riot account to see your match history.';
 
   return (
-    <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-white/10 bg-white/[0.02] px-6 py-16 text-center">
-      <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-purple-500/10 text-purple-300">
+    <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-line bg-panel px-6 py-16 text-center">
+      <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-accent/10 text-accent">
         <svg
           width="24"
           height="24"
@@ -112,7 +112,7 @@ function EmptyState({ filter }: { filter: MatchFilter }) {
           <circle cx="3.5" cy="18" r="1.2" />
         </svg>
       </div>
-      <p className="text-sm text-slate-400">{message}</p>
+      <p className="text-sm text-ink-muted">{message}</p>
     </div>
   );
 }

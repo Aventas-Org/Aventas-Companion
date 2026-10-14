@@ -17,7 +17,7 @@ function ComingSoonPage() {
   return (
     <div className="flex h-full items-center justify-center p-6">
       <div className="max-w-md text-center">
-        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-purple-500/10 text-purple-300">
+        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-accent/10 text-accent">
           <svg
             width="24"
             height="24"
@@ -33,8 +33,8 @@ function ComingSoonPage() {
             <path d="M12 8v4l3 3" />
           </svg>
         </div>
-        <h2 className="text-lg font-semibold text-white">Settings</h2>
-        <p className="mt-1 text-sm text-slate-500">
+        <h2 className="text-lg font-semibold text-ink">Settings</h2>
+        <p className="mt-1 text-sm text-ink-muted">
           This section is coming soon. Round Analysis, Rank Benchmark, Insights, Overview, Profile,
           Matches, and Statistics are the active views in this build.
         </p>
@@ -60,7 +60,7 @@ function App() {
   const Page = PAGES[activeNav];
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-[#0f0f12] text-slate-200">
+    <div className="flex h-screen w-screen overflow-hidden bg-app text-ink">
       <Sidebar active={activeNav} onNavigate={setActiveNav} />
       <main className="flex-1 overflow-y-auto">
         <Page />

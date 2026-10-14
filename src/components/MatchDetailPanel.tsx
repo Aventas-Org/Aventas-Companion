@@ -40,9 +40,9 @@ function ResultBadge({ result }: { result: MatchResult }) {
 
 function StatRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-center justify-between border-b border-white/5 py-2 last:border-b-0 last:py-0">
-      <span className="text-xs font-medium uppercase tracking-wider text-slate-500">{label}</span>
-      <span className="text-sm text-slate-200">{value}</span>
+    <div className="flex items-center justify-between border-b border-line py-2 last:border-b-0 last:py-0">
+      <span className="text-xs font-medium uppercase tracking-wider text-ink-muted">{label}</span>
+      <span className="text-sm text-ink">{value}</span>
     </div>
   );
 }
@@ -51,17 +51,17 @@ export function MatchDetailPanel({ match, onClose }: MatchDetailPanelProps) {
   const ratio = kdRatio(match.kills, match.deaths);
 
   return (
-    <div className="sticky top-6 rounded-lg border border-white/5 bg-white/[0.02] p-5">
+    <div className="sticky top-6 rounded-lg border border-line bg-panel p-5">
       <div className="flex items-start justify-between">
         <div className="flex flex-col gap-2">
           <ResultBadge result={match.result} />
-          <h3 className="text-lg font-semibold text-white">{match.map}</h3>
+          <h3 className="text-lg font-semibold text-ink">{match.map}</h3>
         </div>
         <button
           type="button"
           onClick={onClose}
           aria-label="Close match details"
-          className="rounded-md p-1 text-slate-500 transition-colors hover:bg-white/5 hover:text-slate-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400/70"
+          className="rounded-md p-1 text-ink-muted transition-colors hover:bg-line hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
         >
           <svg
             width="18"
@@ -81,28 +81,28 @@ export function MatchDetailPanel({ match, onClose }: MatchDetailPanelProps) {
       </div>
 
       <div className="mt-4">
-        <p className="text-sm text-slate-400">Score</p>
-        <p className="text-xl font-semibold text-slate-100">{match.score}</p>
+        <p className="text-sm text-ink-muted">Score</p>
+        <p className="text-xl font-semibold text-ink">{match.score}</p>
       </div>
 
-      <div className="mt-4 grid grid-cols-3 gap-2 rounded-lg bg-[#0f0f12] p-3">
+      <div className="mt-4 grid grid-cols-3 gap-2 rounded-lg bg-app p-3">
         <div className="text-center">
           <p className="text-lg font-semibold text-emerald-400">{match.kills}</p>
-          <p className="text-[10px] font-medium uppercase tracking-wider text-slate-500">Kills</p>
+          <p className="text-[10px] font-medium uppercase tracking-wider text-ink-muted">Kills</p>
         </div>
         <div className="text-center">
           <p className="text-lg font-semibold text-red-400">{match.deaths}</p>
-          <p className="text-[10px] font-medium uppercase tracking-wider text-slate-500">Deaths</p>
+          <p className="text-[10px] font-medium uppercase tracking-wider text-ink-muted">Deaths</p>
         </div>
         <div className="text-center">
-          <p className="text-lg font-semibold text-slate-300">{match.assists}</p>
-          <p className="text-[10px] font-medium uppercase tracking-wider text-slate-500">Assists</p>
+          <p className="text-lg font-semibold text-ink">{match.assists}</p>
+          <p className="text-[10px] font-medium uppercase tracking-wider text-ink-muted">Assists</p>
         </div>
       </div>
 
       <div className="mt-4">
-        <p className="text-sm text-slate-400">K/D Ratio</p>
-        <p className="text-xl font-semibold text-purple-300">{ratio.toFixed(2)}</p>
+        <p className="text-sm text-ink-muted">K/D Ratio</p>
+        <p className="text-xl font-semibold text-accent">{ratio.toFixed(2)}</p>
       </div>
 
       <div className="mt-4">

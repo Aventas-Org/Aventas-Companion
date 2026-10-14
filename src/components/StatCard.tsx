@@ -2,21 +2,28 @@ interface StatCardProps {
   label: string;
   value: string;
   helper: string;
-  accent?: 'purple' | 'amber' | 'slate';
+  tone?: 'default' | 'accent' | 'warning';
 }
 
-const ACCENT_CLASSES: Record<NonNullable<StatCardProps['accent']>, string> = {
-  purple: 'text-purple-300',
-  amber: 'text-amber-300',
-  slate: 'text-slate-300',
+const VALUE_TONES: Record<NonNullable<StatCardProps['tone']>, string> = {
+  default: 'text-ink',
+  accent: 'text-accent',
+  warning: 'text-amber-300',
 };
 
-export function StatCard({ label, value, helper, accent = 'slate' }: StatCardProps) {
+/**
+ * Metric card with a tightened three-line hierarchy:
+ * 11px uppercase label, 24px metric, 12px muted helper. Vertical rhythm is kept
+ * tight on purpose so a row of cards reads as one dense block of data.
+ */
+export function StatCard({ label, value, helper, tone = 'default' }: StatCardProps) {
   return (
-    <div className="rounded-lg border border-white/5 bg-white/[0.02] p-4">
-      <p className="text-xs font-medium uppercase tracking-wider text-slate-500">{label}</p>
-      <p className={`mt-2 text-2xl font-semibold ${ACCENT_CLASSES[accent]}`}>{value}</p>
-      <p className="mt-1 text-[11px] text-slate-500">{helper}</p>
+    <div className="rounded-lg border border-line bg-panel px-4 py-3.5">
+      <p className="text-[11px] font-medium uppercase leading-none tracking-[0.05em] text-ink-muted">
+        {label}
+      </p>
+      <p className={`mt-2 text-2xl font-semibold leading-none ${VALUE_TONES[tone]}`}>{value}</p>
+      <p className="mt-2 text-xs leading-none text-ink-muted">{helper}</p>
     </div>
   );
 }

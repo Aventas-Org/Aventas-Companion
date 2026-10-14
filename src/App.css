@@ -1,14 +1,11 @@
-@tail base;
-@tail components;
-@tail utilities;
-
+/**
+ * Layout resets. Global colour tokens live in index.css so they also apply to
+ * the overlay window, which never mounts App.tsx.
+ */
 html,
-body {
+body,
+#root {
   margin: 0;
   padding: 0;
-  height: 100%;
-}
-
-#root {
   height: 100%;
 }

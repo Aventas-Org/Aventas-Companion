@@ -8,9 +8,9 @@ const BLOOD_COLOR = '#34d399';
 const DEATH_COLOR = '#f87171';
 
 const ZONE_STYLES: Record<string, { fill: string; stroke: string }> = {
-  site: { fill: 'rgba(168,85,247,0.12)', stroke: 'rgba(168,85,247,0.3)' },
-  lane: { fill: 'rgba(255,255,255,0.035)', stroke: 'rgba(255,255,255,0.09)' },
-  spawn: { fill: 'rgba(148,163,184,0.08)', stroke: 'rgba(148,163,184,0.14)' },
+  site: { fill: 'rgba(255,70,85,0.10)', stroke: 'rgba(255,70,85,0.28)' },
+  lane: { fill: 'rgba(36,39,45,0.6)', stroke: 'rgba(36,39,45,1)' },
+  spawn: { fill: 'rgba(22,24,28,1)', stroke: 'rgba(36,39,45,1)' },
 };
 
 interface MapHeatmapProps {
@@ -41,7 +41,7 @@ export function MapHeatmap({ map, cells, mode }: MapHeatmapProps) {
   return (
     <div className="flex flex-col gap-3">
       <div
-        className="relative w-full overflow-hidden rounded-lg border border-white/5 bg-[#0b0b0e]"
+        className="relative w-full overflow-hidden rounded-lg border border-line bg-app"
         style={{ aspectRatio: '4 / 3' }}
       >
         <svg
@@ -77,7 +77,7 @@ export function MapHeatmap({ map, cells, mode }: MapHeatmapProps) {
                   y={(zone.y + zone.h / 2) * 100}
                   textAnchor="middle"
                   dominantBaseline="middle"
-                  fill="#64748b"
+                  fill="#9CA3AF"
                   fontSize={2.7}
                   fontFamily="ui-sans-serif, system-ui"
                   style={{ letterSpacing: '0.02em' }}
@@ -110,7 +110,7 @@ export function MapHeatmap({ map, cells, mode }: MapHeatmapProps) {
                 cy={cell.point.y * 100}
                 r={1.5}
                 fill={cell.kind === 'first-blood' ? BLOOD_COLOR : DEATH_COLOR}
-                stroke="#0b0b0e"
+                stroke="#0B0C0E"
                 strokeWidth={0.35}
               >
                 <title>
@@ -126,7 +126,7 @@ export function MapHeatmap({ map, cells, mode }: MapHeatmapProps) {
               y={50}
               textAnchor="middle"
               dominantBaseline="middle"
-              fill="#475569"
+              fill="#9CA3AF"
               fontSize={3.4}
               fontFamily="ui-sans-serif, system-ui"
             >
@@ -136,7 +136,7 @@ export function MapHeatmap({ map, cells, mode }: MapHeatmapProps) {
         </svg>
       </div>
 
-      <div className="flex flex-wrap items-center gap-4 text-xs text-slate-400">
+      <div className="flex flex-wrap items-center gap-4 text-xs text-ink-muted">
         {(mode === 'both' || mode === 'bloods') && (
           <span className="flex items-center gap-2">
             <span
@@ -157,7 +157,7 @@ export function MapHeatmap({ map, cells, mode }: MapHeatmapProps) {
             First deaths ({deaths})
           </span>
         )}
-        <span className="text-slate-500">
+        <span className="text-ink-muted">
           {layout.zones.filter((zone) => zone.kind === 'site').length} sites · schematic layout
         </span>
       </div>

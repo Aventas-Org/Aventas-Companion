@@ -28,8 +28,8 @@ export function InsightsPage() {
     <div className="flex flex-1 flex-col gap-6 p-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-semibold tracking-tight text-white">Insights</h2>
-          <p className="mt-1 text-sm text-slate-400">
+          <h2 className="text-2xl font-semibold tracking-tight text-ink">Insights</h2>
+          <p className="mt-1 text-sm text-ink-muted">
             Automated takeaways from your match data — no numbers to decode, just what to change
             before your next queue.
           </p>
@@ -45,28 +45,28 @@ export function InsightsPage() {
       <DemoDataNotice />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="rounded-lg border border-white/5 bg-white/[0.02] p-4">
-          <p className="text-xs font-medium uppercase tracking-wider text-slate-500">Record</p>
-          <p className="mt-2 text-2xl font-semibold text-slate-200">
+        <div className="rounded-lg border border-line bg-panel p-4">
+          <p className="text-xs font-medium uppercase tracking-wider text-ink-muted">Record</p>
+          <p className="mt-2 text-2xl font-semibold text-ink">
             {view.record.wins}
-            <span className="text-slate-500">W</span> {view.record.losses}
-            <span className="text-slate-500">L</span>
+            <span className="text-ink-muted">W</span> {view.record.losses}
+            <span className="text-ink-muted">L</span>
           </p>
-          <p className="mt-1 text-[11px] text-slate-500">
+          <p className="mt-1 text-[11px] text-ink-muted">
             {pct(view.record.winRate)} win rate over {view.record.matches} matches
           </p>
         </div>
-        <div className="rounded-lg border border-white/5 bg-white/[0.02] p-4">
-          <p className="text-xs font-medium uppercase tracking-wider text-slate-500">
+        <div className="rounded-lg border border-line bg-panel p-4">
+          <p className="text-xs font-medium uppercase tracking-wider text-ink-muted">
             Rounds analysed
           </p>
-          <p className="mt-2 text-2xl font-semibold text-purple-300">{view.rounds.length}</p>
-          <p className="mt-1 text-[11px] text-slate-500">
+          <p className="mt-2 text-2xl font-semibold text-accent">{view.rounds.length}</p>
+          <p className="mt-1 text-[11px] text-ink-muted">
             {view.utility.flashAssists} teammate kills created by your flashes
           </p>
         </div>
-        <div className="rounded-lg border border-white/5 bg-white/[0.02] p-4">
-          <p className="text-xs font-medium uppercase tracking-wider text-slate-500">
+        <div className="rounded-lg border border-line bg-panel p-4">
+          <p className="text-xs font-medium uppercase tracking-wider text-ink-muted">
             Top focus right now
           </p>
           <p className="mt-2 text-sm font-semibold leading-snug text-amber-300">
@@ -80,7 +80,7 @@ export function InsightsPage() {
         subtitle="The three highest-impact findings, ranked by how much they are costing you."
       >
         {view.insights.length === 0 ? (
-          <p className="rounded-lg border border-dashed border-white/10 bg-white/[0.02] px-4 py-10 text-center text-sm text-slate-500">
+          <p className="rounded-lg border border-dashed border-line bg-panel px-4 py-10 text-center text-sm text-ink-muted">
             Not enough data in this window to generate takeaways yet.
           </p>
         ) : (
@@ -102,7 +102,7 @@ export function InsightsPage() {
               <InsightCard key={insight.id} insight={insight} />
             ))}
           </div>
-          <p className="mt-4 text-[11px] text-slate-500">
+          <p className="mt-4 text-[11px] text-ink-muted">
             Categories: {Object.values(INSIGHT_CATEGORY_LABELS).join(' · ')}
           </p>
         </SectionCard>

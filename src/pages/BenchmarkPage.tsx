@@ -33,8 +33,8 @@ export function BenchmarkPage() {
   return (
     <div className="flex flex-1 flex-col gap-6 p-6">
       <div>
-        <h2 className="text-2xl font-semibold tracking-tight text-white">Rank Benchmark</h2>
-        <p className="mt-1 text-sm text-slate-400">
+        <h2 className="text-2xl font-semibold tracking-tight text-ink">Rank Benchmark</h2>
+        <p className="mt-1 text-sm text-ink-muted">
           See exactly how your numbers stack up against the rank you are chasing — and which part of
           your game is holding you back.
         </p>
@@ -48,36 +48,32 @@ export function BenchmarkPage() {
       >
         <div className="flex flex-col gap-4">
           <div className="flex flex-wrap items-center gap-3">
-            <span className="rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2">
-              <span className="block text-[10px] uppercase tracking-wider text-slate-500">
+            <span className="rounded-lg border border-line bg-panel px-3 py-2">
+              <span className="block text-[10px] uppercase tracking-wider text-ink-muted">
                 Current rank
               </span>
-              <span className="text-sm font-semibold text-slate-200">
-                {session.player.currentRank}
-              </span>
+              <span className="text-sm font-semibold text-ink">{session.player.currentRank}</span>
             </span>
-            <span className="text-slate-600" aria-hidden="true">
+            <span className="text-ink-muted" aria-hidden="true">
               →
             </span>
-            <span className="rounded-lg border border-purple-500/30 bg-purple-500/[0.06] px-3 py-2">
-              <span className="block text-[10px] uppercase tracking-wider text-slate-500">
+            <span className="rounded-lg border border-accent/40 bg-accent/[0.06] px-3 py-2">
+              <span className="block text-[10px] uppercase tracking-wider text-ink-muted">
                 Target rank
               </span>
-              <span className="text-sm font-semibold text-purple-200">
-                {session.player.targetRank}
-              </span>
+              <span className="text-sm font-semibold text-ink">{session.player.targetRank}</span>
             </span>
-            <span className="text-xs text-slate-500">
+            <span className="text-xs text-ink-muted">
               Main: {session.player.mainAgent} · {session.player.mainRole}
             </span>
           </div>
 
           {best && worst && (
-            <p className="rounded-lg border border-white/5 bg-white/[0.02] p-4 text-sm leading-relaxed text-slate-300">
-              Your <span className="font-semibold text-purple-200">{best.metric.shortLabel}</span>{' '}
-              grades <span className="font-semibold text-purple-200">{best.playerTier}</span>, but
-              your <span className="font-semibold text-amber-300">{worst.metric.shortLabel}</span>{' '}
-              is <span className="font-semibold text-amber-300">{worst.playerTier}</span>.
+            <p className="rounded-lg border border-line bg-panel p-4 text-sm leading-relaxed text-ink">
+              Your <span className="font-semibold text-ink">{best.metric.shortLabel}</span> grades{' '}
+              <span className="font-semibold text-ink">{best.playerTier}</span>, but your{' '}
+              <span className="font-semibold text-amber-300">{worst.metric.shortLabel}</span> is{' '}
+              <span className="font-semibold text-amber-300">{worst.playerTier}</span>.
               {gapCount > 0
                 ? ` ${gapCount} of your ${comparisons.length} metrics are still below ${session.player.currentRank} — that is the climb.`
                 : ` Every metric already meets your current rank, so ${session.player.targetRank} is a realistic next step.`}

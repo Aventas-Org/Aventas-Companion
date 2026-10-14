@@ -47,22 +47,22 @@ export function OverlayControl() {
   };
 
   return (
-    <div className="rounded-lg border border-white/5 bg-white/[0.02] px-3 py-3">
-      <p className="text-xs font-medium text-slate-400">In-game overlay</p>
+    <div className="rounded-lg border border-line bg-panel px-3 py-3">
+      <p className="text-xs font-medium text-ink-muted">In-game overlay</p>
 
       {!desktop && (
-        <p className="mt-1 text-[11px] leading-relaxed text-slate-500">
-          Desktop app only. Open <code className="text-slate-400">?view=overlay</code> to preview
+        <p className="mt-1 text-[11px] leading-relaxed text-ink-muted">
+          Desktop app only. Open <code className="text-ink-muted">?view=overlay</code> to preview
           the HUD here.
         </p>
       )}
 
-      <label className="mt-2 flex cursor-pointer items-start gap-2 text-[11px] leading-relaxed text-slate-500">
+      <label className="mt-2 flex cursor-pointer items-start gap-2 text-[11px] leading-relaxed text-ink-muted">
         <input
           type="checkbox"
           checked={acknowledged}
           onChange={(event) => setAcknowledged(event.target.checked)}
-          className="mt-0.5 accent-purple-500"
+          className="mt-0.5 accent-[#FF4655]"
         />
         <span>
           Historical stats only — no live or opponent information, per Riot’s third-party policy.
@@ -74,7 +74,7 @@ export function OverlayControl() {
           type="button"
           disabled={!desktop || !acknowledged}
           onClick={() => void toggleVisible(!visible)}
-          className="rounded-md bg-purple-500/20 px-2.5 py-1.5 text-[11px] font-medium text-purple-200 hover:bg-purple-500/30 disabled:cursor-not-allowed disabled:bg-white/5 disabled:text-slate-600"
+          className="rounded-md bg-accent/15 px-2.5 py-1.5 text-[11px] font-medium text-ink hover:bg-accent/20 disabled:cursor-not-allowed disabled:bg-line disabled:text-ink-muted"
         >
           {visible ? 'Hide overlay' : 'Show overlay'}
         </button>
@@ -82,7 +82,7 @@ export function OverlayControl() {
           type="button"
           disabled={!desktop || !visible}
           onClick={() => void toggleClickThrough(!clickThrough)}
-          className="rounded-md border border-white/10 px-2.5 py-1.5 text-[11px] font-medium text-slate-300 hover:bg-white/5 disabled:cursor-not-allowed disabled:text-slate-600"
+          className="rounded-md border border-line px-2.5 py-1.5 text-[11px] font-medium text-ink hover:bg-line disabled:cursor-not-allowed disabled:text-ink-muted"
         >
           Click-through: {clickThrough ? 'on' : 'off'}
         </button>

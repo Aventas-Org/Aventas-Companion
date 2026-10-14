@@ -56,33 +56,33 @@ export function MatchHistoryItem({ matches, selectedId, onSelect }: MatchHistory
             aria-pressed={isSelected}
             className={[
               'flex w-full items-center justify-between gap-4 rounded-lg border p-4 text-left transition-colors',
-              'focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400/70',
+              'focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60',
               isSelected
-                ? 'border-purple-500/40 bg-purple-500/5'
-                : 'border-white/5 bg-white/[0.02] hover:border-white/10 hover:bg-white/[0.04]',
+                ? 'border-accent/50 bg-accent/[0.06]'
+                : 'border-line bg-panel hover:border-line hover:bg-panel',
             ].join(' ')}
           >
             <div className="flex items-center gap-4">
               <ResultBadge result={match.result} />
               <div>
-                <p className="text-sm font-semibold text-slate-200">{match.map}</p>
-                <p className="text-xs text-slate-500">{formatDate(match.date)}</p>
+                <p className="text-sm font-semibold text-ink">{match.map}</p>
+                <p className="text-xs text-ink-muted">{formatDate(match.date)}</p>
               </div>
             </div>
             <div className="flex items-center gap-6">
               <div className="text-right">
-                <p className="text-sm font-semibold text-slate-200">{match.score}</p>
-                <p className="text-xs text-slate-500">{kdRatio(match.kills, match.deaths)} K/D</p>
+                <p className="text-sm font-semibold text-ink">{match.score}</p>
+                <p className="text-xs text-ink-muted">{kdRatio(match.kills, match.deaths)} K/D</p>
               </div>
               <div className="hidden text-right sm:block">
-                <p className="text-sm text-slate-300">
+                <p className="text-sm text-ink">
                   <span className="text-emerald-400">{match.kills}</span>
                   {' / '}
                   <span className="text-red-400">{match.deaths}</span>
                   {' / '}
-                  <span className="text-slate-400">{match.assists}</span>
+                  <span className="text-ink-muted">{match.assists}</span>
                 </p>
-                <p className="text-xs text-slate-500">K / D / A</p>
+                <p className="text-xs text-ink-muted">K / D / A</p>
               </div>
               <svg
                 width="16"
@@ -93,7 +93,7 @@ export function MatchHistoryItem({ matches, selectedId, onSelect }: MatchHistory
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                className={`transition-transform ${isSelected ? 'rotate-90 text-purple-300' : 'text-slate-600'}`}
+                className={`transition-transform ${isSelected ? 'rotate-90 text-accent' : 'text-ink-muted'}`}
                 aria-hidden="true"
               >
                 <path d="M9 18l6-6-6-6" />

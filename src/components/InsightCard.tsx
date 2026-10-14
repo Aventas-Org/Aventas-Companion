@@ -89,17 +89,15 @@ export function InsightCard({ insight }: InsightCardProps) {
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-slate-400">
+            <span className="rounded-full border border-line bg-line px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-ink-muted">
               {INSIGHT_CATEGORY_LABELS[insight.category]}
             </span>
             <span className={`text-[10px] font-semibold uppercase tracking-wider ${styles.text}`}>
               {styles.label}
             </span>
           </div>
-          <h4 className="mt-2 text-sm font-semibold leading-snug text-slate-100">
-            {insight.title}
-          </h4>
-          <p className="mt-1 text-xs leading-relaxed text-slate-400">{insight.detail}</p>
+          <h4 className="mt-2 text-sm font-semibold leading-snug text-ink">{insight.title}</h4>
+          <p className="mt-1 text-xs leading-relaxed text-ink-muted">{insight.detail}</p>
         </div>
       </div>
     </article>

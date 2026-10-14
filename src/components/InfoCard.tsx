@@ -1,42 +1,40 @@
 import type { ReactNode } from 'react';
 
+export type InfoTone = 'neutral' | 'accent' | 'success' | 'warning';
+
+const TITLE_TONES: Record<InfoTone, string> = {
+  neutral: 'text-ink',
+  accent: 'text-accent',
+  success: 'text-emerald-300',
+  warning: 'text-amber-300',
+};
+
+const ICON_TONES: Record<InfoTone, string> = {
+  neutral: 'bg-line text-ink',
+  accent: 'bg-accent/10 text-accent',
+  success: 'bg-emerald-500/10 text-emerald-300',
+  warning: 'bg-amber-500/10 text-amber-300',
+};
+
 interface InfoCardProps {
   title: string;
   description: string;
   icon: ReactNode;
-  accent?: 'purple' | 'slate' | 'green' | 'amber';
+  tone?: InfoTone;
   footer?: ReactNode;
 }
 
-export function InfoCard({ title, description, icon, accent = 'slate', footer }: InfoCardProps) {
-  const titleColor =
-    accent === 'purple'
-      ? 'text-purple-300'
-      : accent === 'green'
-        ? 'text-emerald-300'
-        : accent === 'amber'
-          ? 'text-amber-300'
-          : 'text-slate-200';
-
-  const iconBg =
-    accent === 'purple'
-      ? 'bg-purple-500/10 text-purple-300'
-      : accent === 'green'
-        ? 'bg-emerald-500/10 text-emerald-300'
-        : accent === 'amber'
-          ? 'bg-amber-500/10 text-amber-300'
-          : 'bg-slate-500/10 text-slate-300';
-
+export function InfoCard({ title, description, icon, tone = 'neutral', footer }: InfoCardProps) {
   return (
-    <div className="flex flex-col rounded-lg border border-white/5 bg-white/[0.02] p-5">
+    <div className="flex flex-col rounded-lg border border-line bg-panel p-5">
       <div className="flex items-center gap-3">
-        <span className={`flex h-9 w-9 items-center justify-center rounded-md ${iconBg}`}>
+        <span className={`flex h-9 w-9 items-center justify-center rounded-md ${ICON_TONES[tone]}`}>
           {icon}
         </span>
-        <h3 className={`text-base font-semibold ${titleColor}`}>{title}</h3>
+        <h3 className={`text-sm font-semibold tracking-tight ${TITLE_TONES[tone]}`}>{title}</h3>
       </div>
-      <p className="mt-3 text-sm leading-relaxed text-slate-400">{description}</p>
-      {footer && <div className="mt-4 pt-3 border-t border-white/5">{footer}</div>}
+      <p className="mt-3 text-xs leading-relaxed text-ink-muted">{description}</p>
+      {footer && <div className="mt-4 border-t border-line pt-3">{footer}</div>}
     </div>
   );
 }

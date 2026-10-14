@@ -86,16 +86,16 @@ export function ProfilePage() {
 
   const inputClass = (hasError: boolean) =>
     [
-      'w-full rounded-lg border bg-[#0f0f12] px-3 py-2 text-sm text-slate-200 placeholder:text-slate-600',
-      'focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400/70',
-      hasError ? 'border-red-500/50' : 'border-white/10',
+      'w-full rounded-lg border bg-app px-3 py-2 text-sm text-ink placeholder:text-ink-muted',
+      'focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60',
+      hasError ? 'border-red-500/50' : 'border-line',
     ].join(' ');
 
   return (
     <div className="flex flex-1 flex-col gap-6 p-6">
       <div>
-        <h2 className="text-2xl font-semibold tracking-tight text-white">Player Profile</h2>
-        <p>
+        <h2 className="text-2xl font-semibold tracking-tight text-ink">Player Profile</h2>
+        <p className="mt-1 text-sm text-ink-muted">
           Set up your VALORANT player profile. Enter your Riot ID and region so Aventas Companion
           can identify you.
         </p>
@@ -108,28 +108,28 @@ export function ProfilePage() {
         </p>
       </div>
       {saved && (
-        <div className="rounded-lg border border-purple-500/20 bg-purple-500/5 p-5">
+        <div className="rounded-lg border border-accent/30 bg-accent/[0.06] p-5">
           <div className="flex items-center gap-3">
-            <UserIcon />
-            <h3 className="text-base font-semibold text-purple-300">Profile saved</h3>
+            <UserIcon className="text-accent" />
+            <h3 className="text-sm font-semibold text-accent">Profile saved</h3>
           </div>
-          <dl>
-            <div>
-              <dt>Riot ID</dt>
-              <dd>
+          <dl className="mt-3 flex flex-col gap-2">
+            <div className="flex items-baseline justify-between gap-4">
+              <dt className="text-[11px] uppercase tracking-[0.05em] text-ink-muted">Riot ID</dt>
+              <dd className="text-sm text-ink">
                 {saved.riotIdName}#{saved.riotIdTagline}
               </dd>
             </div>
-            <div>
-              <dt>Region</dt>
-              <dd>{getRegionLabel(saved.region)}</dd>
+            <div className="flex items-baseline justify-between gap-4">
+              <dt className="text-[11px] uppercase tracking-[0.05em] text-ink-muted">Region</dt>
+              <dd className="text-sm text-ink">{getRegionLabel(saved.region)}</dd>
             </div>
-            <div>
-              <dt>Status</dt>
-              <dd>Local only — not verified</dd>
+            <div className="flex items-baseline justify-between gap-4">
+              <dt className="text-[11px] uppercase tracking-[0.05em] text-ink-muted">Status</dt>
+              <dd className="text-sm text-ink">Local only — not verified</dd>
             </div>
           </dl>
-          <p className="mt-3 text-[11px] text-slate-500">
+          <p className="mt-3 text-[11px] text-ink-muted">
             Saved in memory only. Will be cleared on restart.
           </p>
         </div>
@@ -137,14 +137,16 @@ export function ProfilePage() {
       <form
         noValidate
         onSubmit={handleSubmit}
-        className="max-w-xl rounded-lg border border-white/5 bg-white/[0.02] p-5"
+        className="max-w-xl rounded-lg border border-line bg-panel p-5"
       >
         <div className="flex flex-col gap-5">
           <div>
-            <label htmlFor="riot-id-name" className="block text-sm font-medium text-slate-300">
+            <label htmlFor="riot-id-name" className="block text-sm font-medium text-ink">
               Riot ID name
             </label>
-            <p>3–16 characters. Letters, numbers, underscores.</p>
+            <p className="mt-1 text-[11px] text-ink-muted">
+              3–16 characters. Letters, numbers, underscores.
+            </p>
             <input
               ref={nameRef}
               id="riot-id-name"
@@ -164,10 +166,12 @@ export function ProfilePage() {
             )}
           </div>
           <div>
-            <label htmlFor="riot-id-tagline" className="block text-sm font-medium text-slate-300">
+            <label htmlFor="riot-id-tagline" className="block text-sm font-medium text-ink">
               Riot ID tagline
             </label>
-            <p>1–5 characters. Letters and numbers only.</p>
+            <p className="mt-1 text-[11px] text-ink-muted">
+              1–5 characters. Letters and numbers only.
+            </p>
             <input
               ref={taglineRef}
               id="riot-id-tagline"
@@ -188,7 +192,7 @@ export function ProfilePage() {
             )}
           </div>
           <div>
-            <label htmlFor="region" className="block text-sm font-medium text-slate-300">
+            <label htmlFor="region" className="block text-sm font-medium text-ink">
               Region
             </label>
             <select
@@ -200,7 +204,14 @@ export function ProfilePage() {
               className={inputClass(!!errors.region)}
               aria-invalid={errors.region ? 'true' : 'false'}
               aria-describedby={errors.region ? 'region-error' : undefined}
-            />
+            >
+              <option value="">Select a region…</option>
+              {REGIONS.map((region) => (
+                <option key={region.value} value={region.value}>
+                  {region.label}
+                </option>
+              ))}
+            </select>
             {errors.region && (
               <p id="region-error" role="alert" className="mt-1.5 text-xs text-red-400">
                 {errors.region}
@@ -209,7 +220,7 @@ export function ProfilePage() {
           </div>
           <button
             type="submit"
-            className="mt-2 self-start rounded-lg bg-purple-500/20 px-4 py-2 text-sm font-medium text-purple-200 hover:bg-purple-500/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400/70"
+            className="mt-2 self-start rounded-lg bg-accent/15 px-4 py-2 text-sm font-medium text-ink hover:bg-accent/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
           >
             Save Profile
           </button>

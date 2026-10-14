@@ -31,14 +31,14 @@ export function BenchmarkTrack({ comparison }: BenchmarkTrackProps) {
       : { label: 'Behind rank', className: 'bg-red-500/15 text-red-300' };
 
   return (
-    <div className="rounded-lg border border-white/5 bg-white/[0.02] p-4">
+    <div className="rounded-lg border border-line bg-panel p-4">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
-          <p className="text-sm font-semibold text-slate-200">{comparison.metric.label}</p>
-          <p className="mt-0.5 text-[11px] text-slate-500">{comparison.metric.description}</p>
+          <p className="text-sm font-semibold text-ink">{comparison.metric.label}</p>
+          <p className="mt-0.5 text-[11px] text-ink-muted">{comparison.metric.description}</p>
         </div>
         <div className="flex items-center gap-2">
-          <span className="rounded-full bg-purple-500/15 px-2.5 py-0.5 text-xs font-semibold text-purple-200">
+          <span className="rounded-full bg-accent/15 px-2.5 py-0.5 text-xs font-semibold text-ink">
             {comparison.playerTier}
           </span>
           <span
@@ -50,24 +50,24 @@ export function BenchmarkTrack({ comparison }: BenchmarkTrackProps) {
       </div>
 
       <div className="mt-4 flex items-baseline gap-2">
-        <span className="text-lg font-semibold text-slate-100">
+        <span className="text-lg font-semibold text-ink">
           {formatMetricValue(comparison.playerValue, comparison.metric.unit)}
         </span>
-        <span className="text-[11px] text-slate-500">
+        <span className="text-[11px] text-ink-muted">
           {comparison.meetsTarget ? 'meets' : 'vs'} {comparison.targetRank} target{' '}
           {formatMetricValue(comparison.targetRankValue, comparison.metric.unit)}
         </span>
       </div>
 
       <div className="mt-3">
-        <div className="relative h-2 rounded-full bg-white/5">
+        <div className="relative h-2 rounded-full bg-line">
           <div
-            className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-purple-500/30 to-purple-400/70"
+            className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-accent/25 to-accent/70"
             style={{ width: `${playerPos}%` }}
           />
           {/* Current rank average */}
           <span
-            className="absolute -top-1 h-4 w-0.5 rounded bg-slate-400"
+            className="absolute -top-1 h-4 w-0.5 rounded bg-ink-muted"
             style={{ left: `${currentPos}%` }}
             title={`${comparison.currentRank} average`}
           />
@@ -79,12 +79,12 @@ export function BenchmarkTrack({ comparison }: BenchmarkTrackProps) {
           />
           {/* Player marker */}
           <span
-            className="absolute top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-[#0f0f12] bg-purple-400"
+            className="absolute top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-app bg-accent"
             style={{ left: `${playerPos}%` }}
             title={`You: ${formatMetricValue(comparison.playerValue, comparison.metric.unit)}`}
           />
         </div>
-        <div className="mt-2 flex justify-between text-[10px] text-slate-600">
+        <div className="mt-2 flex justify-between text-[10px] text-ink-muted">
           <span>{bands[0].rank}</span>
           <span>{bands[bands.length - 1].rank}</span>
         </div>
@@ -96,13 +96,13 @@ export function BenchmarkTrack({ comparison }: BenchmarkTrackProps) {
 /** Explains the three markers used across the benchmark tracks. */
 export function BenchmarkLegend() {
   return (
-    <div className="flex flex-wrap items-center gap-4 text-[11px] text-slate-400">
+    <div className="flex flex-wrap items-center gap-4 text-[11px] text-ink-muted">
       <span className="flex items-center gap-2">
-        <span className="h-3 w-3 rounded-full bg-purple-400" aria-hidden="true" />
+        <span className="h-3 w-3 rounded-full bg-accent" aria-hidden="true" />
         You
       </span>
       <span className="flex items-center gap-2">
-        <span className="h-3 w-0.5 rounded bg-slate-400" aria-hidden="true" />
+        <span className="h-3 w-0.5 rounded bg-ink-muted" aria-hidden="true" />
         Current rank average
       </span>
       <span className="flex items-center gap-2">

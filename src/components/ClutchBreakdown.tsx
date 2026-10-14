@@ -11,7 +11,7 @@ const VERDICT_STYLES: Record<
   },
   steady: {
     label: 'Steady under pressure',
-    className: 'bg-slate-500/15 text-slate-300',
+    className: 'bg-line text-ink',
     blurb: 'You convert clutches at roughly the rank average.',
   },
   choking: {
@@ -36,14 +36,14 @@ export function ClutchBreakdown({ clutch }: ClutchBreakdownProps) {
           <span className={`rounded-full px-3 py-1 text-xs font-semibold ${verdict.className}`}>
             {verdict.label}
           </span>
-          <span className="text-xs text-slate-500">{verdict.blurb}</span>
+          <span className="text-xs text-ink-muted">{verdict.blurb}</span>
         </div>
-        <span className="text-xs text-slate-400">
+        <span className="text-xs text-ink-muted">
           {clutch.wins}/{clutch.attempts} situations won
           {clutch.winRate !== null && clutch.expectedRate !== null && (
             <>
               {' · '}
-              <span className="text-slate-300">{Math.round(clutch.winRate)}%</span>
+              <span className="text-ink">{Math.round(clutch.winRate)}%</span>
               {' vs '}
               {Math.round(clutch.expectedRate)}% rank average
             </>
@@ -52,7 +52,7 @@ export function ClutchBreakdown({ clutch }: ClutchBreakdownProps) {
       </div>
 
       {clutch.breakdown.length === 0 ? (
-        <p className="rounded-lg border border-dashed border-white/10 bg-white/[0.02] px-4 py-8 text-center text-xs text-slate-500">
+        <p className="rounded-lg border border-dashed border-line bg-panel px-4 py-8 text-center text-xs text-ink-muted">
           No clutch situations recorded in this window.
         </p>
       ) : (
@@ -61,13 +61,10 @@ export function ClutchBreakdown({ clutch }: ClutchBreakdownProps) {
             const winRate = entry.winRate ?? 0;
             const ahead = entry.delta >= 0;
             return (
-              <div
-                key={entry.type}
-                className="rounded-lg border border-white/5 bg-white/[0.02] p-3"
-              >
+              <div key={entry.type} className="rounded-lg border border-line bg-panel p-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold text-slate-200">{entry.type}</span>
-                  <span className="text-[11px] text-slate-500">
+                  <span className="text-sm font-semibold text-ink">{entry.type}</span>
+                  <span className="text-[11px] text-ink-muted">
                     {entry.wins}/{entry.attempts}
                   </span>
                 </div>
@@ -76,19 +73,19 @@ export function ClutchBreakdown({ clutch }: ClutchBreakdownProps) {
                 >
                   {Math.round(winRate)}%
                 </p>
-                <div className="relative mt-2 h-1.5 w-full rounded-full bg-white/5">
+                <div className="relative mt-2 h-1.5 w-full rounded-full bg-line">
                   <div
                     className={`h-full rounded-full ${ahead ? 'bg-emerald-400' : 'bg-red-400'}`}
                     style={{ width: `${Math.min(100, Math.max(0, winRate))}%` }}
                   />
                   {/* Rank-average benchmark tick */}
                   <span
-                    className="absolute -top-1 h-3.5 w-0.5 bg-slate-400"
+                    className="absolute -top-1 h-3.5 w-0.5 bg-ink-muted"
                     style={{ left: `${Math.min(100, Math.max(0, entry.benchmark))}%` }}
                     title={`Rank average ${entry.benchmark}%`}
                   />
                 </div>
-                <p className="mt-1.5 text-[10px] text-slate-500">
+                <p className="mt-1.5 text-[10px] text-ink-muted">
                   Avg {entry.benchmark}% ·{' '}
                   <span className={ahead ? 'text-emerald-400' : 'text-red-400'}>
                     {entry.delta >= 0 ? '+' : ''}

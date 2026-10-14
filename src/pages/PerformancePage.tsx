@@ -66,8 +66,8 @@ export function PerformancePage() {
     <div className="flex flex-1 flex-col gap-6 p-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-semibold tracking-tight text-white">Round Analysis</h2>
-          <p className="mt-1 text-sm text-slate-400">
+          <h2 className="text-2xl font-semibold tracking-tight text-ink">Round Analysis</h2>
+          <p className="mt-1 text-sm text-ink-muted">
             Round-by-round context: where your opening duels happen, how your economy converts, and
             how you hold up when you are outnumbered.
           </p>
@@ -87,19 +87,19 @@ export function PerformancePage() {
           label="Rounds Analysed"
           value={String(view.rounds.length)}
           helper={`${view.matches.length} matches · ${pct(view.record.winRate)} win rate`}
-          accent="slate"
+          tone="default"
         />
         <StatCard
           label="Opening Duel Win Rate"
           value={pct(openingDuels.openingDuelWinRate)}
           helper={`${openingDuels.firstBloods} first bloods · ${openingDuels.firstDeaths} first deaths`}
-          accent="purple"
+          tone="accent"
         />
         <StatCard
           label="Clutch Win Rate"
           value={pct(view.clutch.winRate)}
           helper={`${view.clutch.wins}/${view.clutch.attempts} outnumbered rounds won`}
-          accent={view.clutch.verdict === 'choking' ? 'amber' : 'purple'}
+          tone={view.clutch.verdict === 'choking' ? 'warning' : 'accent'}
         />
         <StatCard
           label="Eco Round Win Rate"
@@ -107,7 +107,7 @@ export function PerformancePage() {
           helper={
             eco ? `${eco.rounds} eco rounds · ${eco.averageSpend} avg credits` : 'No eco rounds'
           }
-          accent="slate"
+          tone="default"
         />
       </div>
 
@@ -136,14 +136,14 @@ export function PerformancePage() {
                   aria-pressed={isActive}
                   className={[
                     'rounded-md border px-3 py-1.5 text-xs font-medium transition-colors',
-                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400/70',
+                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60',
                     isActive
-                      ? 'border-purple-500/40 bg-purple-500/10 text-purple-200'
-                      : 'border-white/10 bg-white/[0.02] text-slate-400 hover:text-slate-200',
+                      ? 'border-accent/50 bg-accent/10 text-ink'
+                      : 'border-line bg-panel text-ink-muted hover:text-ink',
                   ].join(' ')}
                 >
                   {entry.map}
-                  <span className="ml-2 text-slate-500">{entry.cells.length}</span>
+                  <span className="ml-2 text-ink-muted">{entry.cells.length}</span>
                 </button>
               );
             })}
@@ -161,11 +161,11 @@ export function PerformancePage() {
               return (
                 <div
                   key={entry.map}
-                  className="flex items-center justify-between gap-3 rounded-md border border-white/5 bg-white/[0.02] px-3 py-2.5"
+                  className="flex items-center justify-between gap-3 rounded-md border border-line bg-panel px-3 py-2.5"
                 >
                   <div>
-                    <p className="text-sm font-medium text-slate-200">{entry.map}</p>
-                    <p className="text-[11px] text-slate-500">
+                    <p className="text-sm font-medium text-ink">{entry.map}</p>
+                    <p className="text-[11px] text-ink-muted">
                       {entry.summary.firstBloods} bloods · {entry.summary.firstDeaths} deaths
                     </p>
                   </div>
@@ -181,7 +181,7 @@ export function PerformancePage() {
                     >
                       {Math.round(rate)}%
                     </p>
-                    <p className="text-[11px] text-slate-500">{entry.cells.length} duels</p>
+                    <p className="text-[11px] text-ink-muted">{entry.cells.length} duels</p>
                   </div>
                 </div>
               );

@@ -18,7 +18,7 @@ const PADDING = { top: 16, right: 16, bottom: 28, left: 8 };
 export function TrendChart({ points, height = CHART_HEIGHT, width = '100%' }: TrendChartProps) {
   if (points.length === 0) {
     return (
-      <div className="flex items-center justify-center text-xs text-slate-500" style={{ height }}>
+      <div className="flex items-center justify-center text-xs text-ink-muted" style={{ height }}>
         No data to chart.
       </div>
     );
@@ -84,14 +84,14 @@ export function TrendChart({ points, height = CHART_HEIGHT, width = '100%' }: Tr
             y1={g.y}
             x2={innerWidth - PADDING.right}
             y2={g.y}
-            stroke="rgba(148,163,184,0.15)"
+            stroke="rgba(243,244,246,0.10)"
             strokeWidth="1"
           />
           <text
             x={PADDING.left - 4}
             y={g.y + 3}
             textAnchor="end"
-            fill="#64748b"
+            fill="#9CA3AF"
             fontSize="10"
             fontFamily="ui-sans-serif, system-ui"
           >
@@ -106,8 +106,8 @@ export function TrendChart({ points, height = CHART_HEIGHT, width = '100%' }: Tr
       {/* Gradient definition */}
       <defs>
         <linearGradient id="trendGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#a855f7" />
-          <stop offset="100%" stopColor="#a855f7" stopOpacity="0" />
+          <stop offset="0%" stopColor="#FF4655" />
+          <stop offset="100%" stopColor="#FF4655" stopOpacity="0" />
         </linearGradient>
       </defs>
 
@@ -115,7 +115,7 @@ export function TrendChart({ points, height = CHART_HEIGHT, width = '100%' }: Tr
       <path
         d={linePath}
         fill="none"
-        stroke="#a855f7"
+        stroke="#FF4655"
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -127,7 +127,7 @@ export function TrendChart({ points, height = CHART_HEIGHT, width = '100%' }: Tr
         const color = point.result === 'victory' ? '#34d399' : '#f87171';
         return (
           <g key={i}>
-            <circle cx={c.x} cy={c.y} r="3.5" fill={color} stroke="#0f0f12" strokeWidth="1.5">
+            <circle cx={c.x} cy={c.y} r="3.5" fill={color} stroke="#0B0C0E" strokeWidth="1.5">
               <title>{`${point.label}: ${point.value} (${point.result ?? 'n/a'})`}</title>
             </circle>
           </g>
@@ -145,7 +145,7 @@ export function TrendChart({ points, height = CHART_HEIGHT, width = '100%' }: Tr
             x={c.x}
             y={innerHeight - PADDING.bottom + 14}
             textAnchor="middle"
-            fill="#64748b"
+            fill="#9CA3AF"
             fontSize="9"
             fontFamily="ui-sans-serif, system-ui"
           >
