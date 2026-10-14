@@ -23,5 +23,5 @@ export const NAV_ITEMS: NavItem[] = [
   { id: 'matches', label: 'Matches', enabled: true },
   { id: 'profile', label: 'Profile', enabled: true },
   { id: 'statistics', label: 'Statistics', enabled: true },
-  { id: 'settings', label: 'Settings', enabled: false },
+  { id: 'settings', label: 'Settings', enabled: true },
 ];

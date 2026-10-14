@@ -84,14 +84,14 @@ export function TrendChart({ points, height = CHART_HEIGHT, width = '100%' }: Tr
             y1={g.y}
             x2={innerWidth - PADDING.right}
             y2={g.y}
-            stroke="rgba(243,244,246,0.10)"
+            style={{ stroke: 'rgb(var(--color-ink) / 0.10)' }}
             strokeWidth="1"
           />
           <text
             x={PADDING.left - 4}
             y={g.y + 3}
             textAnchor="end"
-            fill="#9CA3AF"
+            style={{ fill: 'rgb(var(--color-ink-muted))' }}
             fontSize="10"
             fontFamily="ui-sans-serif, system-ui"
           >
@@ -106,8 +106,8 @@ export function TrendChart({ points, height = CHART_HEIGHT, width = '100%' }: Tr
       {/* Gradient definition */}
       <defs>
         <linearGradient id="trendGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#FF4655" />
-          <stop offset="100%" stopColor="#FF4655" stopOpacity="0" />
+          <stop offset="0%" style={{ stopColor: 'rgb(var(--color-accent))' }} />
+          <stop offset="100%" style={{ stopColor: 'rgb(var(--color-accent))' }} stopOpacity="0" />
         </linearGradient>
       </defs>
 
@@ -115,7 +115,7 @@ export function TrendChart({ points, height = CHART_HEIGHT, width = '100%' }: Tr
       <path
         d={linePath}
         fill="none"
-        stroke="#FF4655"
+        style={{ stroke: 'rgb(var(--color-accent))' }}
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -127,7 +127,14 @@ export function TrendChart({ points, height = CHART_HEIGHT, width = '100%' }: Tr
         const color = point.result === 'victory' ? '#34d399' : '#f87171';
         return (
           <g key={i}>
-            <circle cx={c.x} cy={c.y} r="3.5" fill={color} stroke="#0B0C0E" strokeWidth="1.5">
+            <circle
+              cx={c.x}
+              cy={c.y}
+              r="3.5"
+              fill={color}
+              style={{ stroke: 'rgb(var(--color-panel))' }}
+              strokeWidth="1.5"
+            >
               <title>{`${point.label}: ${point.value} (${point.result ?? 'n/a'})`}</title>
             </circle>
           </g>
@@ -145,7 +152,7 @@ export function TrendChart({ points, height = CHART_HEIGHT, width = '100%' }: Tr
             x={c.x}
             y={innerHeight - PADDING.bottom + 14}
             textAnchor="middle"
-            fill="#9CA3AF"
+            style={{ fill: 'rgb(var(--color-ink-muted))' }}
             fontSize="9"
             fontFamily="ui-sans-serif, system-ui"
           >

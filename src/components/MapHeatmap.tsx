@@ -7,10 +7,19 @@ export type HeatMode = 'bloods' | 'deaths' | 'both';
 const BLOOD_COLOR = '#34d399';
 const DEATH_COLOR = '#f87171';
 
+/**
+ * Zone fills read from the palette variables so the schematic follows the
+ * active theme instead of staying charcoal on a light preset. They have to be
+ * applied as inline styles: `var()` inside an SVG presentation attribute is not
+ * resolved, while the same value in `style` is.
+ */
 const ZONE_STYLES: Record<string, { fill: string; stroke: string }> = {
-  site: { fill: 'rgba(255,70,85,0.10)', stroke: 'rgba(255,70,85,0.28)' },
-  lane: { fill: 'rgba(36,39,45,0.6)', stroke: 'rgba(36,39,45,1)' },
-  spawn: { fill: 'rgba(22,24,28,1)', stroke: 'rgba(36,39,45,1)' },
+  site: {
+    fill: 'rgb(var(--color-accent) / 0.10)',
+    stroke: 'rgb(var(--color-accent) / 0.28)',
+  },
+  lane: { fill: 'rgb(var(--color-line) / 0.6)', stroke: 'rgb(var(--color-line))' },
+  spawn: { fill: 'rgb(var(--color-panel))', stroke: 'rgb(var(--color-line))' },
 };
 
 interface MapHeatmapProps {
@@ -68,8 +77,7 @@ export function MapHeatmap({ map, cells, mode }: MapHeatmapProps) {
                   width={zone.w * 100}
                   height={zone.h * 100}
                   rx={1.4}
-                  fill={style.fill}
-                  stroke={style.stroke}
+                  style={{ fill: style.fill, stroke: style.stroke }}
                   strokeWidth={0.35}
                 />
                 <text
@@ -77,10 +85,9 @@ export function MapHeatmap({ map, cells, mode }: MapHeatmapProps) {
                   y={(zone.y + zone.h / 2) * 100}
                   textAnchor="middle"
                   dominantBaseline="middle"
-                  fill="#9CA3AF"
+                  style={{ fill: 'rgb(var(--color-ink-muted))', letterSpacing: '0.02em' }}
                   fontSize={2.7}
                   fontFamily="ui-sans-serif, system-ui"
-                  style={{ letterSpacing: '0.02em' }}
                 >
                   {zone.label}
                 </text>
@@ -110,7 +117,7 @@ export function MapHeatmap({ map, cells, mode }: MapHeatmapProps) {
                 cy={cell.point.y * 100}
                 r={1.5}
                 fill={cell.kind === 'first-blood' ? BLOOD_COLOR : DEATH_COLOR}
-                stroke="#0B0C0E"
+                style={{ stroke: 'rgb(var(--color-panel))' }}
                 strokeWidth={0.35}
               >
                 <title>
@@ -126,7 +133,7 @@ export function MapHeatmap({ map, cells, mode }: MapHeatmapProps) {
               y={50}
               textAnchor="middle"
               dominantBaseline="middle"
-              fill="#9CA3AF"
+              style={{ fill: 'rgb(var(--color-ink-muted))' }}
               fontSize={3.4}
               fontFamily="ui-sans-serif, system-ui"
             >

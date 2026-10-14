@@ -62,7 +62,7 @@ export function OverlayControl() {
           type="checkbox"
           checked={acknowledged}
           onChange={(event) => setAcknowledged(event.target.checked)}
-          className="mt-0.5 accent-[#FF4655]"
+          className="mt-0.5 accent-accent"
         />
         <span>
           Historical stats only — no live or opponent information, per Riot’s third-party policy.

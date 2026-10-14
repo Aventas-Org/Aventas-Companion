@@ -7,18 +7,22 @@ export default {
         sans: ['Inter', 'system-ui', 'sans-serif'],
       },
       /**
-       * Aventas palette: layered desaturated charcoals with a single accent.
-       * True black never appears next to the panels, so elevation reads cleanly.
+       * Aventas palette: layered surfaces with a single accent.
+       *
+       * The colours resolve to CSS variables (see `src/index.css`) instead of
+       * hard-coded hex, which is what lets a theme preset repaint the whole UI
+       * without a rebuild. The `<alpha-value>` placeholder keeps Tailwind's
+       * opacity modifiers (`bg-accent/15`, `border-accent/30`) working.
        */
       colors: {
-        app: '#0B0C0E',
-        panel: '#16181C',
-        line: '#24272D',
+        app: 'rgb(var(--color-app) / <alpha-value>)',
+        panel: 'rgb(var(--color-panel) / <alpha-value>)',
+        line: 'rgb(var(--color-line) / <alpha-value>)',
         ink: {
-          DEFAULT: '#F3F4F6',
-          muted: '#9CA3AF',
+          DEFAULT: 'rgb(var(--color-ink) / <alpha-value>)',
+          muted: 'rgb(var(--color-ink-muted) / <alpha-value>)',
         },
-        accent: '#FF4655',
+        accent: 'rgb(var(--color-accent) / <alpha-value>)',
       },
     },
   },

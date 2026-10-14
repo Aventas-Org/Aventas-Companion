@@ -123,6 +123,15 @@ export function BenchmarkIcon(props: IconProps) {
   );
 }
 
+/** Selection tick, used by the appearance preset cards. */
+export function CheckIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M20 6L9 17l-5-5" />
+    </svg>
+  );
+}
+
 /** Actionable insights / lightbulb icon. */
 export function InsightsIcon(props: IconProps) {
   return (
