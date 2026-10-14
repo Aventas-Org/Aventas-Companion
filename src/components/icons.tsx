@@ -102,3 +102,34 @@ export function CrosshairIcon(props: IconProps) {
     </svg>
   );
 }
+
+/** Round-by-round performance / pulse icon. */
+export function PerformanceIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M3 12h3.5l2.5-7 4 14 2.5-7H21" />
+    </svg>
+  );
+}
+
+/** Rank benchmark / gauge icon. */
+export function BenchmarkIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M5 18a7 7 0 1 1 14 0" />
+      <path d="M12 18l4.5-5.5" />
+      <circle cx="12" cy="18" r="1.3" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+/** Actionable insights / lightbulb icon. */
+export function InsightsIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M9.5 18h5" />
+      <path d="M10.5 21.5h3" />
+      <path d="M12 2.5a6.5 6.5 0 0 0-3.7 11.9c.5.4.7 1 .7 1.6h6a2.6 2.6 0 0 1 .7-1.6A6.5 6.5 0 0 0 12 2.5z" />
+    </svg>
+  );
+}

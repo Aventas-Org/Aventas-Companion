@@ -2,6 +2,7 @@
   "name": "aventascompanion",
   "version": "0.1.0",
   "description": "Aventas Desktop Companion - Windows desktop application",
+  "author": "Flanxiyum001 <pourushnair6@gmail.com>",
   "type": "module",
   "scripts": {
     "dev": "vite",

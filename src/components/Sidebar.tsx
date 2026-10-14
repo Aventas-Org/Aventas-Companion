@@ -1,9 +1,21 @@
 import { BrandLogo } from './BrandLogo';
 import { NAV_ITEMS, type NavId } from './nav';
-import { MatchesIcon, OverviewIcon, SettingsIcon, StatisticsIcon, UserIcon } from './icons';
+import {
+  BenchmarkIcon,
+  InsightsIcon,
+  MatchesIcon,
+  OverviewIcon,
+  PerformanceIcon,
+  SettingsIcon,
+  StatisticsIcon,
+  UserIcon,
+} from './icons';
 
 const NAV_ICONS: Record<NavId, typeof OverviewIcon> = {
   overview: OverviewIcon,
+  performance: PerformanceIcon,
+  benchmark: BenchmarkIcon,
+  insights: InsightsIcon,
   profile: UserIcon,
   matches: MatchesIcon,
   statistics: StatisticsIcon,
