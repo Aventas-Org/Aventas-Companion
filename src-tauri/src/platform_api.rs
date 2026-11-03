@@ -8,6 +8,15 @@ use tauri::State;
 const API_ORIGIN: &str = "https://aventasgaming.com";
 const MAX_RESPONSE: usize = 2 * 1024 * 1024;
 
+/// Tauri capabilities protect plugin commands, but app-defined commands must
+/// explicitly restrict their callers: the overlay is a second webview.
+pub fn require_main_window(window: &tauri::WebviewWindow) -> Result<(), String> {
+    if window.label() != "main" {
+        return Err("This operation is available only in the main Companion window.".into());
+    }
+    Ok(())
+}
+
 pub struct ApiState {
     client: reqwest::Client,
     bearer: Mutex<Option<String>>,
@@ -53,9 +62,11 @@ async fn read_json(response: reqwest::Response) -> Result<Value, String> {
 #[tauri::command]
 pub async fn desktop_login(
     state: State<'_, ApiState>,
+    window: tauri::WebviewWindow,
     email: String,
     password: String,
 ) -> Result<Value, String> {
+    require_main_window(&window)?;
     let email = email.trim().to_lowercase();
     if !email.contains('@') || email.len() > 254 || password.is_empty() || password.len() > 1024 {
         return Err("Enter a valid email and password.".into());
@@ -89,11 +100,18 @@ async fn authorized_get(state: &ApiState, endpoint: &str) -> Result<Value, Strin
             if guard.as_deref() == Some(bearer.as_str()) { *guard = None; }
         }
     }
-    read_json(response).await
+    let data = read_json(response).await?;
+    // Logout or a second login may have replaced this bearer while the
+    // request was pending. Never deliver the previous user's data to React.
+    if state.token().ok().as_deref() != Some(bearer.as_str()) {
+        return Err("The account changed during this request. Retry.".into());
+    }
+    Ok(data)
 }
 
 #[tauri::command]
-pub async fn desktop_account(state: State<'_, ApiState>) -> Result<Value, String> {
+pub async fn desktop_account(state: State<'_, ApiState>, window: tauri::WebviewWindow) -> Result<Value, String> {
+    require_main_window(&window)?;
     let response = authorized_get(&state, "/api/me").await?;
     response.get("account").cloned().ok_or_else(|| "Account data unavailable.".into())
 }
@@ -103,8 +121,10 @@ pub async fn desktop_account(state: State<'_, ApiState>) -> Result<Value, String
 #[tauri::command]
 pub async fn desktop_companion_data(
     state: State<'_, ApiState>,
+    window: tauri::WebviewWindow,
     endpoint: String,
 ) -> Result<Value, String> {
+    require_main_window(&window)?;
     let path = match endpoint.as_str() {
         "profile" => "/api/companion/profile",
         "dashboard" => "/api/companion/dashboard",
@@ -120,7 +140,8 @@ pub async fn desktop_companion_data(
 }
 
 #[tauri::command]
-pub async fn desktop_logout(state: State<'_, ApiState>) -> Result<(), String> {
+pub async fn desktop_logout(state: State<'_, ApiState>, window: tauri::WebviewWindow) -> Result<(), String> {
+    require_main_window(&window)?;
     // Fail closed locally even if website network logout cannot be delivered.
     let token = state.bearer.lock().map_err(|_| "Session unavailable".to_owned())?.take();
     if let Some(bearer) = token {
@@ -131,7 +152,8 @@ pub async fn desktop_logout(state: State<'_, ApiState>) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub async fn fetch_public_tournaments(state: State<'_, ApiState>) -> Result<Value, String> {
+pub async fn fetch_public_tournaments(state: State<'_, ApiState>, window: tauri::WebviewWindow) -> Result<Value, String> {
+    require_main_window(&window)?;
     let response = state.client.get(format!("{API_ORIGIN}/api/tournaments"))
         .send().await.map_err(|_| "Tournament website unavailable.".to_owned())?;
     let data = read_json(response).await?;
@@ -144,8 +166,10 @@ pub async fn fetch_public_tournaments(state: State<'_, ApiState>) -> Result<Valu
 #[tauri::command]
 pub async fn fetch_public_tournament_detail(
     state: State<'_, ApiState>,
+    window: tauri::WebviewWindow,
     slug: String,
 ) -> Result<Value, String> {
+    require_main_window(&window)?;
     let valid = (2..=60).contains(&slug.len())
         && !slug.starts_with('-')
         && slug.bytes().all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == b'-');
@@ -166,8 +190,10 @@ pub async fn fetch_public_tournament_detail(
 #[tauri::command]
 pub async fn search_public_players(
     state: State<'_, ApiState>,
+    window: tauri::WebviewWindow,
     query: String,
 ) -> Result<Value, String> {
+    require_main_window(&window)?;
     let query = query.trim();
     if query.chars().count() < 2 || query.chars().count() > 40 ||
        query.chars().any(|c| c.is_control()) {
@@ -186,8 +212,10 @@ pub async fn search_public_players(
 #[tauri::command]
 pub async fn fetch_public_player(
     state: State<'_, ApiState>,
+    window: tauri::WebviewWindow,
     handle: String,
 ) -> Result<Value, String> {
+    require_main_window(&window)?;
     if handle.len() != 18 || !handle.bytes().all(|b| b.is_ascii_hexdigit() && !b.is_ascii_uppercase()) {
         return Err("Invalid public player handle.".into());
     }
@@ -198,4 +226,19 @@ pub async fn fetch_public_player(
         return Err("Invalid public player profile response.".into());
     }
     Ok(data)
+}
+
+#[cfg(test)]
+mod tests {
+    // Static allowlists are deliberately narrower than the URL/path syntax
+    // accepted by the generic HTTP client. These tests protect the surface.
+    #[test]
+    fn platform_origin_is_https() {
+        assert_eq!(super::API_ORIGIN, "https://aventasgaming.com");
+    }
+
+    #[test]
+    fn response_size_is_bounded() {
+        assert!(super::MAX_RESPONSE <= 2 * 1024 * 1024);
+    }
 }
