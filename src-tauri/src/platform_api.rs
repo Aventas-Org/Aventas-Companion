@@ -5,6 +5,7 @@
 use std::sync::Mutex;
 use serde_json::{json, Value};
 use tauri::State;
+use tauri_plugin_opener::OpenerExt;
 
 const API_ORIGIN: &str = "https://aventasgaming.com";
 const MAX_RESPONSE: usize = 2 * 1024 * 1024;
@@ -259,6 +260,23 @@ pub async fn fetch_public_player(
         return Err("Invalid public player profile response.".into());
     }
     Ok(data)
+}
+
+/// Open only the verified Aventas tournament URL in the default browser.
+/// WebView navigation and arbitrary URLs from renderer input are not permitted.
+#[tauri::command]
+pub fn open_official_tournament(
+    window: tauri::WebviewWindow,
+    slug: String,
+) -> Result<(), String> {
+    require_main_window(&window)?;
+    let valid = (2..=60).contains(&slug.len())
+        && slug.bytes().next().is_some_and(|c| c.is_ascii_lowercase() || c.is_ascii_digit())
+        && slug.bytes().all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == b'-');
+    if !valid { return Err("Invalid tournament identifier.".into()); }
+    window.opener()
+        .open_url(format!("{API_ORIGIN}/tournaments/{slug}"), None::<&str>)
+        .map_err(|_| "The default browser could not open this official tournament.".to_string())
 }
 
 #[cfg(test)]

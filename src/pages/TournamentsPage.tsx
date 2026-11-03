@@ -155,6 +155,7 @@ export function TournamentsPage() {
   const [search, setSearch] = useState('');
   const [revision, setRevision] = useState(0);
   const [lastSync, setLastSync] = useState<number | null>(null);
+  const [openError, setOpenError] = useState('');
   const listRevision = useRef(0);
 
   const refreshList = useCallback(async () => {
@@ -207,6 +208,12 @@ export function TournamentsPage() {
       .toLowerCase().includes(search.trim().toLowerCase()))
   ), [list.rows, search, filter]);
   const tournament = detail.value?.tournament;
+
+  async function openEvent(slug: string) {
+    setOpenError('');
+    try { await invoke('open_official_tournament', { slug }); }
+    catch { setOpenError('Could not open your default browser. You can visit ' + officialLink(slug)); }
+  }
 
   return <section className="page-stage space-y-6">
     <header className="flex flex-wrap items-end justify-between gap-4">
@@ -292,9 +299,10 @@ export function TournamentsPage() {
                   {tournament.summary || 'Official matches, pairings and scores from Aventas.'}
                 </p>
               </div>
-              <a href={officialLink(tournament.slug)} target="_blank" rel="noopener noreferrer"
-                className="a-button a-button-primary shrink-0">Open event website <span aria-hidden="true">↗</span></a>
+              <button type="button" onClick={() => void openEvent(tournament.slug)}
+                className="a-button a-button-primary shrink-0">Open event website <span aria-hidden="true">↗</span></button>
             </div>
+            {openError && <p role="alert" className="mt-3 break-all text-[11px] text-amber-300">{openError}</p>}
             <div className="mt-6 flex flex-wrap gap-x-8 gap-y-3 border-t border-line pt-4 text-[12px]">
               <span><strong className="a-number mr-2 text-[18px] text-ink">{detail.value.teams.length}</strong><span className="text-ink-muted">approved teams</span></span>
               <span><strong className="a-number mr-2 text-[18px] text-ink">{detail.value.matches.length}</strong><span className="text-ink-muted">matches</span></span>

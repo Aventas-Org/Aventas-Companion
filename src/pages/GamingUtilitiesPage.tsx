@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { useValorantStatus } from '../hooks/useValorantStatus';
 import { OverlayControl } from '../components/OverlayControl';
+import { GamepadIcon, PerformanceIcon, SettingsIcon } from '../components/icons';
 
 interface SystemMetrics {
   cpuPercent: number | null;
@@ -9,110 +10,174 @@ interface SystemMetrics {
   totalMemoryBytes: number;
   usedMemoryBytes: number;
 }
+interface Sample { cpu: number | null; memory: number }
+const percent = (number: number | null | undefined) =>
+  typeof number === 'number' && Number.isFinite(number) ? number.toFixed(1) + '%' : '—';
+const gib = (number: number | null | undefined) =>
+  typeof number === 'number' && Number.isFinite(number) ? (number / 1024 ** 3).toFixed(1) + ' GiB' : '—';
 
-function percent(value: number | null | undefined) {
-  return typeof value === 'number' && Number.isFinite(value) ? value.toFixed(1) + '%' : 'Sampling…';
-}
-function gigabytes(bytes: number | null | undefined) {
-  return typeof bytes === 'number' && Number.isFinite(bytes)
-    ? (bytes / (1024 * 1024 * 1024)).toFixed(1) + ' GiB' : 'Unavailable';
+function LiveSparkline({ samples, kind }: { samples: Sample[]; kind: 'cpu' | 'memory' }) {
+  const good = samples.map((s, i) => ({ x: i, y: s[kind] })).filter(p => typeof p.y === 'number' && Number.isFinite(p.y));
+  if (good.length < 2) return <div className="flex h-[100px] items-center justify-center text-[11px] text-ink-muted">Collecting system samples…</div>;
+  const denominator = Math.max(samples.length - 1, 1);
+  const points = good.map(p => {
+    const y = Math.max(4, Math.min(60, 64 - (p.y as number) * .6));
+    return { x: 220 * p.x / denominator, y };
+  });
+  const line = points.map((p, i) => (i ? 'L' : 'M') + p.x.toFixed(1) + ' ' + p.y.toFixed(1)).join(' ');
+  const fill = line + ' L ' + points[points.length - 1].x.toFixed(1) + ' 64 L ' + points[0].x.toFixed(1) + ' 64 Z';
+  const stroke = kind === 'cpu' ? 'rgb(var(--color-accent))' : '#64bea9';
+  return <svg role="img" aria-label={kind === 'cpu' ? 'CPU usage history from actual Windows samples' : 'Physical RAM usage history from actual Windows samples'}
+    className="h-[100px] w-full" viewBox="0 0 220 64" preserveAspectRatio="none">
+    <title>{kind === 'cpu' ? 'CPU usage' : 'RAM usage'} over recent five-second intervals</title>
+    <path d="M0 16H220M0 32H220M0 48H220" stroke="rgb(var(--color-line))" strokeWidth=".5" strokeDasharray="3 5"/>
+    <path d={fill} fill={kind === 'cpu' ? 'rgb(var(--color-accent) / .12)' : 'rgba(100,190,169,.10)'}/>
+    <path d={line} stroke={stroke} strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+  </svg>;
 }
 
-/** Local-only, permission-conscious game utilities.
- * This screen does not inject into VALORANT, inspect game memory, or scout opponents.
- */
 export function GamingUtilitiesPage() {
   const status = useValorantStatus();
   const running = status.phase === 'ready' && status.response.status === 'running';
   const [started, setStarted] = useState<number | null>(null);
   const [seconds, setSeconds] = useState(0);
-  const [system, setSystem] = useState<SystemMetrics | null>(null);
-  const [systemError, setSystemError] = useState(false);
+  const [metrics, setMetrics] = useState<SystemMetrics | null>(null);
+  const [samples, setSamples] = useState<Sample[]>([]);
+  const [metricsError, setMetricsError] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
+    let fetching = false;
     async function sample() {
+      if (fetching) return;
+      fetching = true;
       try {
-        const result = await invoke<SystemMetrics>('read_system_metrics');
-        if (!cancelled) { setSystem(result); setSystemError(false); }
+        const data = await invoke<SystemMetrics>('read_system_metrics');
+        if (cancelled) return;
+        setMetrics(data); setMetricsError(false);
+        setSamples(values => [...values, {
+          cpu: typeof data.cpuPercent === 'number' ? data.cpuPercent : null,
+          memory: data.memoryPercent,
+        }].slice(-24));
       } catch {
-        if (!cancelled) { setSystem(null); setSystemError(true); }
-      }
+        if (!cancelled) { setMetricsError(true); setMetrics(null); }
+      } finally { fetching = false; }
     }
     void sample();
-    const timer = window.setInterval(() => void sample(), 5000);
+    const timer = window.setInterval(() => void sample(), 5_000);
     return () => { cancelled = true; window.clearInterval(timer); };
   }, []);
 
   useEffect(() => {
     if (!running) { setStarted(null); setSeconds(0); return; }
-    setStarted((existing) => existing ?? Date.now());
+    setStarted(value => value ?? Date.now());
   }, [running]);
 
   useEffect(() => {
-    if (!started || !running) return;
-    const timer = window.setInterval(() => setSeconds(Math.floor((Date.now() - started) / 1000)), 1000);
+    if (!running || !started) return;
+    setSeconds(Math.floor((Date.now() - started) / 1_000));
+    const timer = window.setInterval(() => setSeconds(Math.floor((Date.now() - started) / 1_000)), 1_000);
     return () => window.clearInterval(timer);
   }, [running, started]);
 
-  const title = status.phase === 'loading' ? 'Checking for VALORANT…'
-    : status.phase === 'error' ? 'Local process service unavailable'
-    : status.response.status === 'running' ? 'VALORANT detected'
-    : status.response.status === 'not_running' ? 'VALORANT is not running'
-    : 'Process status unavailable';
+  const sessionTime = [
+    Math.floor(seconds / 3600), Math.floor((seconds % 3600) / 60), seconds % 60,
+  ].map(value => String(value).padStart(2, '0')).join(':');
+  const statusTitle = status.phase === 'loading' ? 'Scanning for VALORANT…'
+    : status.phase === 'error' ? 'Game detector unavailable' : running ? 'VALORANT detected'
+    : status.response.status === 'not_running' ? 'VALORANT is not running' : 'Process status unavailable';
 
-  const duration = Math.floor(seconds / 3600) + 'h ' + Math.floor(seconds % 3600 / 60) + 'm ' + seconds % 60 + 's';
-  return <section className="flex flex-col gap-5 p-6">
+  return <section className="page-stage space-y-6">
     <header>
-      <h2 className="text-2xl font-semibold text-ink">Gaming Utilities</h2>
-      <p className="mt-1 text-sm text-ink-muted">Lightweight local system and in-game companion controls.</p>
+      <p className="page-kicker">Aventas / Local tools</p>
+      <h1 className="page-heading mt-2">System desk.</h1>
+      <p className="page-description mt-3">Useful read-only Windows diagnostics, game detection and a controlled historical overlay preview.</p>
     </header>
-    <div className="grid gap-4 xl:grid-cols-2">
-      <div className="rounded-xl border border-line bg-panel p-5">
-        <h3 className="text-sm font-semibold text-ink">Game process monitor</h3>
-        <p className="mt-3 text-lg font-medium text-ink" role="status">{title}</p>
-        {status.phase === 'ready' && <p className="mt-2 text-xs text-ink-muted">
-          Process: {status.response.processName || 'Unavailable'}. Checks run every five seconds.
-        </p>}
-        <p className="mt-6 text-xs text-ink-muted">Uses a Windows process enumeration API. No game memory reads, DLL injection or opponent information.</p>
+
+    <div className="grid gap-5 lg:grid-cols-[minmax(0,1.4fr)_minmax(250px,.7fr)]">
+      <div className="a-hero flex min-h-[215px] flex-wrap items-center gap-7 p-7 sm:p-8">
+        <div className={'flex size-[82px] shrink-0 items-center justify-center rounded-full border ' +
+          (running ? 'border-emerald-400/50 bg-emerald-400/10 text-emerald-400' : 'border-line bg-app/80 text-accent')}>
+          <GamepadIcon width={36} height={36}/>
+        </div>
+        <div className="min-w-0 flex-1">
+          <span className="a-chip" data-tone={running ? 'live' : 'neutral'}>
+            <span className="a-status-dot"/>{running ? 'Game active' : 'Local check'}
+          </span>
+          <h2 className="mt-4 font-display text-[23px] font-semibold tracking-[-.03em] text-ink">{statusTitle}</h2>
+          <p className="mt-2 text-[12px] leading-6 text-ink-muted">
+            {status.phase === 'ready' && status.response.processName
+              ? 'Detected executable: ' + status.response.processName
+              : 'Uses Windows process enumeration with no injection or game-memory access.'}
+          </p>
+          <p className="mt-2 text-[11px] text-ink-muted">Checks every five seconds while this page is open.</p>
+        </div>
       </div>
-      <div className="rounded-xl border border-line bg-panel p-5">
-        <h3 className="text-sm font-semibold text-ink">Observation timer</h3>
-        <p className="mt-3 text-2xl font-semibold text-ink">{running ? duration : '00:00:00'}</p>
-        <p className="mt-2 text-xs leading-relaxed text-ink-muted">
-          Measures continuous detected runtime only while this Utilities page is open.
-          It resets when VALORANT closes or you leave the screen. Not a full gameplay-hours counter.
+      <div className="a-panel flex flex-col justify-between p-6">
+        <span className="a-eyebrow">Current observation</span>
+        <p className="a-number mt-7 text-[39px] leading-none text-ink">{running ? sessionTime : '00:00:00'}</p>
+        <div className="mt-6 border-t border-line pt-4 text-[11px] leading-6 text-ink-muted">
+          Time observed in this tab only. Not a lifetime playtime tracker, and resets when the game closes or this page is left.
+        </div>
+      </div>
+    </div>
+
+    <section className="a-panel overflow-hidden">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-6 py-5">
+        <div>
+          <h2 className="font-display text-[19px] font-semibold text-ink">Windows performance</h2>
+          <p className="mt-1 text-[11px] text-ink-muted">Total device usage, sampled using Windows system APIs</p>
+        </div>
+        <span className="a-chip" data-tone={metricsError ? 'warning' : 'neutral'}>
+          <span className="a-status-dot"/>{metricsError ? 'Unavailable' : 'Read-only · 5s refresh'}
+        </span>
+      </div>
+      {metricsError ? <div role="alert" className="a-empty m-5">
+        Windows telemetry is unavailable. Try reopening Companion. No data is fabricated while monitoring is offline.
+      </div> : <div className="grid gap-0 lg:grid-cols-2">
+        <div className="border-b border-line p-6 lg:border-b-0 lg:border-r">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="a-eyebrow">Overall CPU utilization</p>
+              <p className="a-number mt-2 text-[32px] text-ink">{percent(metrics?.cpuPercent)}</p>
+            </div>
+            <span className="flex size-9 items-center justify-center rounded-[7px] border border-line bg-app text-accent">
+              <PerformanceIcon width={19} height={19}/>
+            </span>
+          </div>
+          <div className="mt-5"><LiveSparkline samples={samples} kind="cpu"/></div>
+          <p className="mt-3 text-[11px] text-ink-muted">Device-wide CPU load, not VALORANT FPS or game CPU utilization.</p>
+        </div>
+        <div className="p-6">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="a-eyebrow">Physical memory in use</p>
+              <p className="a-number mt-2 text-[32px] text-ink">{percent(metrics?.memoryPercent)}</p>
+              <p className="mt-1 text-[11px] text-ink-muted">{gib(metrics?.usedMemoryBytes)} / {gib(metrics?.totalMemoryBytes)}</p>
+            </div>
+            <span className="flex size-9 items-center justify-center rounded-[7px] border border-line bg-app text-[#64bea9]">
+              <SettingsIcon width={19} height={19}/>
+            </span>
+          </div>
+          <div className="mt-5"><LiveSparkline samples={samples} kind="memory"/></div>
+          <p className="mt-3 text-[11px] text-ink-muted">Memory sampling is local; no hardware telemetry is uploaded.</p>
+        </div>
+      </div>}
+    </section>
+
+    <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,.85fr)]">
+      <OverlayControl/>
+      <div className="a-panel p-5">
+        <span className="a-chip">Privacy first</span>
+        <h2 className="mt-4 font-display text-[18px] font-semibold text-ink">No invisible game hooks.</h2>
+        <p className="mt-3 text-[12px] leading-7 text-ink-muted">
+          Companion monitors the Windows process list and supported device counters. It does not capture opponents, alter the game, bypass Vanguard or inspect VALORANT's private memory.
         </p>
-      </div>
-      <div className="rounded-xl border border-line bg-panel p-5">
-        <h3 className="text-sm font-semibold text-ink">Windows system health</h3>
-        {systemError ? <p role="alert" className="mt-3 text-sm text-amber-300">Windows telemetry is unavailable.</p> :
-          <div className="mt-4 grid grid-cols-2 gap-4">
-            <div><p className="text-xs text-ink-muted">Total CPU usage</p>
-              <p className="mt-2 text-xl font-semibold text-ink">{percent(system?.cpuPercent)}</p>
-              <p className="mt-1 text-[11px] text-ink-muted">Five-second OS sample, not game CPU usage</p></div>
-            <div><p className="text-xs text-ink-muted">Physical RAM used</p>
-              <p className="mt-2 text-xl font-semibold text-ink">{percent(system?.memoryPercent)}</p>
-              <p className="mt-1 text-[11px] text-ink-muted">
-                {gigabytes(system?.usedMemoryBytes)} / {gigabytes(system?.totalMemoryBytes)}
-              </p></div>
-          </div>}
-        <p className="mt-4 text-xs text-ink-muted">
-          Uses standard Windows system information and timing APIs. No admin rights,
-          game injection or external telemetry service is required.
-        </p>
-      </div>
-      <div className="max-w-lg">
-        <OverlayControl />
-      </div>
-      <div className="rounded-xl border border-line bg-panel p-5">
-        <h3 className="text-sm font-semibold text-ink">Privacy and compatibility</h3>
-        <p className="mt-2 text-sm leading-relaxed text-ink-muted">
-          The overlay should show historical or personal information only.
-          No automated aim, opponent scouting, game-process injection, or unsupported
-          real-time competitive assistance is enabled. GPU sensors, temperatures
-          and true in-game FPS are not available from this read-only monitor.
-        </p>
+        <div className="mt-6 space-y-3 border-t border-line pt-5 text-[11px] text-ink-muted">
+          <div className="flex items-center gap-2"><span className="a-status-dot text-emerald-400"/>Supported: Windows CPU and RAM</div>
+          <div className="flex items-center gap-2"><span className="a-status-dot text-emerald-400"/>Supported: local VALORANT process detection</div>
+          <div className="flex items-center gap-2"><span className="a-status-dot text-amber-300"/>Not included: GPU temperatures or true in-game FPS</div>
+        </div>
       </div>
     </div>
   </section>;
