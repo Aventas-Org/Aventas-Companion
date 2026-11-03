@@ -13,7 +13,17 @@ pub fn set_overlay_visible(app: AppHandle, caller: tauri::WebviewWindow, visible
         .ok_or_else(|| "overlay window is not configured".to_string())?;
 
     if visible {
-        window.show().map_err(|error| error.to_string())
+        // Enforce click-through before making the fullscreen window visible.
+        // Fail closed so a game-facing overlay never captures mouse input.
+        if let Err(error) = window.set_ignore_cursor_events(true) {
+            let _ = window.hide();
+            return Err(format!("Overlay click-through unavailable: {error}"));
+        }
+        if let Err(error) = window.show() {
+            let _ = window.hide();
+            return Err(format!("Unable to show safe overlay: {error}"));
+        }
+        Ok(())
     } else {
         window.hide().map_err(|error| error.to_string())
     }
@@ -33,7 +43,11 @@ pub fn set_overlay_click_through(app: AppHandle, caller: tauri::WebviewWindow, c
         .get_webview_window("overlay")
         .ok_or_else(|| "overlay window is not configured".to_string())?;
 
+    // This preview is never interactive in the game window.
+    if !click_through {
+        return Err("Practice overlay is always click-through in this preview.".into());
+    }
     window
-        .set_ignore_cursor_events(click_through)
+        .set_ignore_cursor_events(true)
         .map_err(|error| error.to_string())
 }
