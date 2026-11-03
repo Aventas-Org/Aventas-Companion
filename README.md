@@ -34,6 +34,7 @@ proper code signing and real-device compatibility testing.
 | Match archive, agents, maps, progression, insights | Authenticated owner-only website API | Preview |
 | Tournaments + full brackets | Official public website D1 snapshots | Preview, read-only |
 | Player directory | Explicitly opted-in website profiles | Preview |
+| Account visibility | Website account owner privacy API via Settings | Preview |
 | Gaming utilities | Windows read-only CPU, RAM and process APIs | Preview |
 | Practice lab | Clearly labeled simulated fixtures | Demo |
 | Overlay | Historical self-only sample HUD | Demo, opt-in |
@@ -85,7 +86,8 @@ Running only `npm run dev` does not provide the native API and process detector.
 Authenticated website bearer tokens remain inside the native process, never in
 React state or localStorage. The overlay cannot access account or official
 website APIs. Opt-in public profiles never include email, PUUID or private
-individual matches. Losing network access does not silently substitute demo
+individual matches. In Settings, signed-in members can enable or disable
+public directory visibility with server-confirmed, explicit consent. Losing network access does not silently substitute demo
 statistics for real data.
 
 ## Current external release gates
