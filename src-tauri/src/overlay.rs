@@ -6,7 +6,8 @@ use tauri::{AppHandle, Manager};
 /// `transparent`, `alwaysOnTop` and `skipTaskbar` set. It starts hidden so it
 /// never covers the dashboard on launch.
 #[tauri::command]
-pub fn set_overlay_visible(app: AppHandle, visible: bool) -> Result<(), String> {
+pub fn set_overlay_visible(app: AppHandle, caller: tauri::WebviewWindow, visible: bool) -> Result<(), String> {
+    crate::platform_api::require_main_window(&caller)?;
     let window = app
         .get_webview_window("overlay")
         .ok_or_else(|| "overlay window is not configured".to_string())?;
@@ -26,7 +27,8 @@ pub fn set_overlay_visible(app: AppHandle, visible: bool) -> Result<(), String> 
 /// unnecessary here, and the window is never injected into the game process, so
 /// there is nothing for Vanguard to object to.
 #[tauri::command]
-pub fn set_overlay_click_through(app: AppHandle, click_through: bool) -> Result<(), String> {
+pub fn set_overlay_click_through(app: AppHandle, caller: tauri::WebviewWindow, click_through: bool) -> Result<(), String> {
+    crate::platform_api::require_main_window(&caller)?;
     let window = app
         .get_webview_window("overlay")
         .ok_or_else(|| "overlay window is not configured".to_string())?;
