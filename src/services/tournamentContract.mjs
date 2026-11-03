@@ -18,8 +18,8 @@ export function validTournament(value) {
 
 export function validMatch(value) {
   return record(value) && typeof value.id === 'string' && value.id.length > 0 &&
-    Number.isInteger(value.round) && value.round >= 1 && value.round <= 12 &&
-    positiveInteger(value.slot) && value.slot <= 127 &&
+    Number.isInteger(value.round) && value.round >= 1 && value.round <= 6 &&
+    positiveInteger(value.slot) && value.slot <= 31 &&
     typeof value.teamA === 'string' && value.teamA.length <= 120 &&
     typeof value.teamB === 'string' && value.teamB.length <= 120 &&
     positiveInteger(value.scoreA) && positiveInteger(value.scoreB) &&
@@ -31,8 +31,8 @@ export function validMatch(value) {
 export function validBracket(value, expectedSlug) {
   if (!record(value) || !validTournament(value.tournament) ||
       value.tournament.slug !== expectedSlug ||
-      !Array.isArray(value.matches) || value.matches.length > 128 ||
-      !Array.isArray(value.teams) || value.teams.length > 128 ||
+      !Array.isArray(value.matches) || value.matches.length > 63 ||
+      !Array.isArray(value.teams) || value.teams.length > 64 ||
       !value.teams.every(team => record(team) && typeof team.id === 'string' &&
         typeof team.name === 'string') ||
       !value.matches.every(validMatch)) return false;
@@ -45,8 +45,17 @@ export function validBracket(value, expectedSlug) {
     seen.add(key);
     finalRound = Math.max(finalRound, match.round);
   }
-  // All non-empty single-elimination brackets must have one unique final slot.
-  return !value.matches.length ||
-    value.matches.filter(m => m.round === finalRound).length === 1 &&
-    value.matches.some(m => m.round === finalRound && m.slot === 0);
+  // Single-elimination brackets require one final, every child must feed a
+  // real next-round slot, and every parent must have both feeder slots.
+  if (!value.matches.length) return true;
+  if (value.matches.filter(m => m.round === finalRound).length !== 1 ||
+      !seen.has(finalRound + ':0')) return false;
+  for (const m of value.matches) {
+    if (m.round < finalRound &&
+        !seen.has((m.round + 1) + ':' + Math.floor(m.slot / 2))) return false;
+    if (m.round > 1 &&
+        (!seen.has((m.round - 1) + ':' + (m.slot * 2)) ||
+         !seen.has((m.round - 1) + ':' + (m.slot * 2 + 1)))) return false;
+  }
+  return true;
 }
