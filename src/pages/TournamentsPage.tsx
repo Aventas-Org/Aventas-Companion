@@ -1,40 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
+import { validTournament, validBracket } from '../services/tournamentContract.mjs';
+import type { Tournament, Match, Bracket } from '../services/tournamentContract.mjs';
 
-interface Tournament {
-  id?: string; slug: string; name: string; game?: string;
-  status: 'upcoming' | 'live' | 'completed'; startsAt?: number;
-  region?: string; teamCount?: number; prizePool?: string; champion?: string;
-  registrationOpen?: boolean;
-}
-interface Match {
-  id: string; round: number; slot: number; teamA: string; teamB: string;
-  scoreA: number; scoreB: number; status: 'scheduled' | 'live' | 'completed';
-  scheduledAt?: number; bestOf?: number;
-}
-interface Bracket { tournament: Tournament; matches: Match[]; teams: Array<{ id: string; name: string }> }
 type ListState = { state: 'loading' | 'ready' | 'error'; rows: Tournament[] };
 type DetailState = { state: 'loading' | 'ready' | 'error'; data: Bracket | null };
 const linkFor = (slug: string) => 'https://aventasgaming.com/tournaments/' + encodeURIComponent(slug);
 
-function validTournament(value: unknown): value is Tournament {
-  if (!value || typeof value !== 'object') return false;
-  const t = value as Record<string, unknown>;
-  return typeof t.name === 'string' && typeof t.slug === 'string' &&
-    /^[a-z0-9][a-z0-9-]{1,59}$/.test(t.slug) &&
-    ['upcoming', 'live', 'completed'].includes(String(t.status));
-}
-function validMatch(value: unknown): value is Match {
-  if (!value || typeof value !== 'object') return false;
-  const m = value as Record<string, unknown>;
-  return typeof m.id === 'string' && Number.isInteger(m.round) && Number.isInteger(m.slot) &&
-    m.round as number >= 1 && m.slot as number >= 0 &&
-    typeof m.teamA === 'string' && typeof m.teamB === 'string' &&
-    typeof m.scoreA === 'number' && Number.isFinite(m.scoreA) &&
-    typeof m.scoreB === 'number' && Number.isFinite(m.scoreB) &&
-    m.scoreA >= 0 && m.scoreB >= 0 &&
-    ['scheduled', 'live', 'completed'].includes(String(m.status));
-}
 function time(ts?: number) {
   return typeof ts === 'number' && ts > 0 ? new Date(ts).toLocaleString() : 'Schedule pending';
 }
@@ -117,14 +89,8 @@ export function TournamentsPage() {
     async function load() {
       const requestId = ++lastRequest;
       try {
-        const value = await invoke<Bracket>('fetch_public_tournament_detail', { slug: selected });
-        if (!validTournament(value.tournament) || value.tournament.slug !== selected ||
-            !Array.isArray(value.matches) || value.matches.length > 128 ||
-            !value.matches.every(validMatch) || !Array.isArray(value.teams)) {
-          throw new Error('Invalid official bracket');
-        }
-        const slots = new Set(value.matches.map(match => String(match.round) + ':' + String(match.slot)));
-        if (slots.size !== value.matches.length) throw new Error('Duplicated bracket slot');
+        const value = await invoke<unknown>('fetch_public_tournament_detail', { slug: selected });
+        if (!validBracket(value, selected)) throw new Error('Invalid official bracket');
         if (!ignore && requestId === lastRequest) setDetail({ state: 'ready', data: value });
       } catch {
         if (!ignore && requestId === lastRequest) setDetail({ state: 'error', data: null });
