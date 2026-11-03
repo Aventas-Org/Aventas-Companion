@@ -6,6 +6,7 @@ export type NavId =
   | 'insights'
   | 'matches'
   | 'tournaments'
+  | 'utilities'
   | 'profile'
   | 'statistics'
   | 'settings';
@@ -25,6 +26,7 @@ export const NAV_ITEMS: NavItem[] = [
   { id: 'insights', label: 'Insights', enabled: true },
   { id: 'matches', label: 'Matches', enabled: true },
   { id: 'tournaments', label: 'Tournaments', enabled: true },
+  { id: 'utilities', label: 'Gaming Utilities', enabled: true },
   { id: 'profile', label: 'Profile', enabled: true },
   { id: 'statistics', label: 'Statistics', enabled: true },
   { id: 'settings', label: 'Settings', enabled: true },
