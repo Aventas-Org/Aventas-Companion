@@ -1,99 +1,157 @@
 import { useCallback, useEffect, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 
-/** Public, server-authoritative tournament snapshot from Aventas website.
- * Private registration and check-in actions require future shared login.
- */
 interface Tournament {
-  slug: string;
-  name: string;
-  game?: string;
-  status: 'upcoming' | 'live' | 'completed';
-  region?: string;
-  teamCount?: number;
-  prizePool?: string;
-  startsAt?: number;
+  id?: string; slug: string; name: string; game?: string;
+  status: 'upcoming' | 'live' | 'completed'; startsAt?: number;
+  region?: string; teamCount?: number; prizePool?: string; champion?: string;
   registrationOpen?: boolean;
 }
+interface Match {
+  id: string; round: number; slot: number; teamA: string; teamB: string;
+  scoreA: number; scoreB: number; status: 'scheduled' | 'live' | 'completed';
+  scheduledAt?: number; bestOf?: number;
+}
+interface Bracket { tournament: Tournament; matches: Match[]; teams: Array<{ id: string; name: string }> }
+type ListState = { state: 'loading' | 'ready' | 'error'; rows: Tournament[] };
+type DetailState = { state: 'loading' | 'ready' | 'error'; data: Bracket | null };
+const linkFor = (slug: string) => 'https://aventasgaming.com/tournaments/' + encodeURIComponent(slug);
 
-type State = { phase: 'loading' } | { phase: 'error'; message: string } | { phase: 'ready'; tournaments: Tournament[] };
+function validTournament(value: unknown): value is Tournament {
+  if (!value || typeof value !== 'object') return false;
+  const t = value as Record<string, unknown>;
+  return typeof t.name === 'string' && typeof t.slug === 'string' &&
+    /^[a-z0-9][a-z0-9-]{1,59}$/.test(t.slug) &&
+    ['upcoming', 'live', 'completed'].includes(String(t.status));
+}
+function validMatch(value: unknown): value is Match {
+  if (!value || typeof value !== 'object') return false;
+  const m = value as Record<string, unknown>;
+  return typeof m.id === 'string' && Number.isInteger(m.round) && Number.isInteger(m.slot) &&
+    typeof m.teamA === 'string' && typeof m.teamB === 'string' &&
+    ['scheduled', 'live', 'completed'].includes(String(m.status));
+}
+function time(ts?: number) {
+  return typeof ts === 'number' && ts > 0 ? new Date(ts).toLocaleString() : 'Schedule pending';
+}
+function RoundBracket({ bracket }: { bracket: Bracket }) {
+  if (!bracket.matches.length) return <div className="rounded-xl border border-line bg-panel p-6 text-sm text-ink-muted">No official bracket yet. The organizer has not published matchups.</div>;
+  const rounds = [...new Set(bracket.matches.map(match => match.round))].sort((a, b) => a - b);
+  const maxRound = rounds[rounds.length - 1];
+  const label = (round: number) => round === maxRound ? 'Final'
+    : round === maxRound - 1 ? 'Semifinals'
+    : round === maxRound - 2 ? 'Quarterfinals'
+    : 'Round ' + round;
 
-function isTournament(value: unknown): value is Tournament {
-  if (typeof value !== 'object' || value === null) return false;
-  const v = value as Record<string, unknown>;
-  return typeof v.slug === 'string' && /^[a-z0-9][a-z0-9-]{1,59}$/.test(v.slug) &&
-    typeof v.name === 'string' && ['upcoming', 'live', 'completed'].includes(String(v.status));
+  return <section className="overflow-x-auto rounded-xl border border-line bg-panel p-5" aria-label="Official tournament bracket">
+    <div className="flex min-w-max items-stretch gap-5">
+      {rounds.map(round => <div key={round} className="w-64 shrink-0">
+        <h4 className="mb-4 border-b border-line pb-3 text-xs font-semibold uppercase tracking-wider text-accent">{label(round)}</h4>
+        <div className="flex flex-col justify-around gap-4" style={{ minHeight: '350px' }}>
+          {bracket.matches.filter(m => m.round === round).sort((a, b) => a.slot - b.slot).map(m =>
+            <div key={m.id} className="overflow-hidden rounded-lg border border-line bg-app">
+              <div className="flex items-center justify-between border-b border-line px-3 py-2">
+                <span className="min-w-0 truncate text-sm text-ink">{m.teamA || 'TBD'}</span>
+                <span className="ml-3 font-semibold text-ink">{m.status === 'completed' ? m.scoreA : '—'}</span>
+              </div>
+              <div className="flex items-center justify-between px-3 py-2">
+                <span className="min-w-0 truncate text-sm text-ink">{m.teamB || 'TBD'}</span>
+                <span className="ml-3 font-semibold text-ink">{m.status === 'completed' ? m.scoreB : '—'}</span>
+              </div>
+              <p className="border-t border-line px-3 py-2 text-[11px] text-ink-muted">
+                {m.status === 'live' ? '● LIVE' : m.status === 'completed' ? 'Final result' : time(m.scheduledAt)}
+              </p>
+            </div>)}
+        </div>
+      </div>)}
+    </div>
+    <p className="mt-5 text-xs text-ink-muted">
+      Official website pairings and scores. Round order and results are synchronized from Aventas D1; no local bracket is generated.
+    </p>
+  </section>;
 }
 
 export function TournamentsPage() {
-  const [state, setState] = useState<State>({ phase: 'loading' });
-  const refresh = useCallback(async () => {
+  const [list, setList] = useState<ListState>({ state: 'loading', rows: [] });
+  const [selected, setSelected] = useState<string | null>(null);
+  const [detail, setDetail] = useState<DetailState>({ state: 'loading', data: null });
+  const [revision, setRevision] = useState(0);
+
+  const refreshList = useCallback(async () => {
     try {
       const payload = await invoke<{ tournaments: unknown[] }>('fetch_public_tournaments');
-      if (!Array.isArray(payload?.tournaments)) throw new Error('Invalid server response');
-      setState({ phase: 'ready', tournaments: payload.tournaments.filter(isTournament) });
+      if (!Array.isArray(payload?.tournaments)) throw new Error('Invalid list');
+      const rows = payload.tournaments.filter(validTournament);
+      setList({ state: 'ready', rows });
     } catch {
-      setState({ phase: 'error', message: 'Could not reach the Aventas website. Check your connection and try again.' });
+      setList(prev => ({ state: 'error', rows: prev.rows }));
     }
   }, []);
 
   useEffect(() => {
-    void refresh();
-    const timer = window.setInterval(() => void refresh(), 60_000);
-    return () => window.clearInterval(timer);
-  }, [refresh]);
+    void refreshList();
+    const interval = window.setInterval(() => void refreshList(), 60_000);
+    return () => window.clearInterval(interval);
+  }, [refreshList, revision]);
 
-  const tournaments = state.phase === 'ready' ? state.tournaments : [];
-  return (
-    <section className="flex flex-col gap-5 p-6">
-      <header className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h2 className="text-xl font-semibold text-ink">Aventas Tournaments</h2>
-          <p className="mt-1 text-sm text-ink-muted">
-            Live official listings from the Aventas website. No generated brackets or demo events.
-          </p>
+  useEffect(() => {
+    if (!selected) return;
+    let ignore = false;
+    setDetail({ state: 'loading', data: null });
+    async function load() {
+      try {
+        const value = await invoke<Bracket>('fetch_public_tournament_detail', { slug: selected });
+        if (!validTournament(value.tournament) || !Array.isArray(value.matches) ||
+            !value.matches.every(validMatch) || !Array.isArray(value.teams)) throw new Error('Invalid bracket');
+        if (!ignore) setDetail({ state: 'ready', data: value });
+      } catch {
+        if (!ignore) setDetail({ state: 'error', data: null });
+      }
+    }
+    void load();
+    const interval = window.setInterval(() => void load(), 60_000);
+    return () => { ignore = true; window.clearInterval(interval); };
+  }, [selected, revision]);
+
+  const current = detail.data?.tournament;
+  return <section className="flex flex-col gap-5 p-6">
+    <header className="flex flex-wrap items-start justify-between gap-4">
+      <div><h2 className="text-2xl font-semibold text-ink">Aventas Tournaments</h2>
+        <p className="mt-1 text-sm text-ink-muted">Official tournament listings, brackets and results synchronized from the website.</p></div>
+      <button type="button" onClick={() => setRevision(n => n + 1)}
+        className="rounded-lg border border-line px-4 py-2 text-sm text-ink hover:bg-line">Refresh</button>
+    </header>
+    {list.state === 'loading' && <p role="status" className="text-sm text-ink-muted">Loading website tournaments…</p>}
+    {list.state === 'error' && <p role="alert" className="rounded-lg border border-amber-500/30 bg-panel p-4 text-sm text-ink">The official website is unavailable. Previous listings may be outdated.</p>}
+    {list.state === 'ready' && !list.rows.length && <p className="rounded-lg border border-line bg-panel p-6 text-sm text-ink-muted">No official tournaments are currently published.</p>}
+    <div className="grid gap-3 lg:grid-cols-2 xl:grid-cols-3">{list.rows.map(t =>
+      <button key={t.slug} type="button" onClick={() => setSelected(t.slug)}
+        aria-pressed={selected === t.slug} className={'rounded-xl border p-5 text-left ' +
+        (selected === t.slug ? 'border-accent bg-accent/10' : 'border-line bg-panel hover:border-ink-muted')}>
+        <h3 className="font-semibold text-ink">{t.name}</h3>
+        <p className="mt-1 text-xs capitalize text-ink-muted">{t.status} · {t.game || 'Valorant'} · {t.region || 'Global'}</p>
+        <p className="mt-3 text-sm text-ink-muted">{time(t.startsAt)}</p>
+      </button>)}</div>
+    {selected && <div className="space-y-4">
+      {detail.state === 'loading' && <p role="status" className="text-sm text-ink-muted">Retrieving official bracket…</p>}
+      {detail.state === 'error' && <p role="alert" className="rounded-lg border border-amber-500/30 bg-panel p-5 text-sm text-ink">Could not verify this tournament bracket. Refresh to retry.</p>}
+      {detail.state === 'ready' && detail.data && <>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div><h3 className="text-lg font-semibold text-ink">{current?.name}</h3>
+            <p className="mt-1 text-sm text-ink-muted">
+              {detail.data.teams.length} approved teams
+              {current?.champion ? ' · Champion: ' + current.champion : ''}
+            </p></div>
+          <a href={linkFor(selected)} target="_blank" rel="noopener noreferrer"
+            className="rounded-lg border border-line px-4 py-2 text-sm text-accent underline">
+            Official website / registration
+          </a>
         </div>
-        <button type="button" onClick={() => void refresh()}
-          className="rounded-lg border border-line px-4 py-2 text-sm text-ink hover:bg-line">
-          Refresh
-        </button>
-      </header>
-      {state.phase === 'loading' && <p className="text-sm text-ink-muted" role="status">Loading official tournaments…</p>}
-      {state.phase === 'error' && <p className="rounded-lg border border-red-500/40 bg-panel p-4 text-sm text-ink" role="alert">{state.message}</p>}
-      {state.phase === 'ready' && !tournaments.length && (
-        <p className="rounded-lg border border-line bg-panel p-6 text-sm text-ink-muted">
-          No tournaments are currently published on the website.
-        </p>
-      )}
-      {state.phase === 'ready' && tournaments.length > 0 && (
-        <div className="grid gap-4 lg:grid-cols-2">
-          {tournaments.map((t) => (
-            <article key={t.slug} className="rounded-xl border border-line bg-panel p-5">
-              <div className="flex items-center justify-between gap-3">
-                <h3 className="text-base font-semibold text-ink">{t.name}</h3>
-                <span className="rounded-full border border-line px-2.5 py-1 text-xs capitalize text-ink-muted">{t.status}</span>
-              </div>
-              <p className="mt-3 text-sm text-ink-muted">
-                {t.game || 'Valorant'} · {t.region || 'Region unspecified'}
-                {typeof t.teamCount === 'number' ? ` · ${t.teamCount} approved teams` : ''}
-              </p>
-              {typeof t.startsAt === 'number' && t.startsAt > 0 && (
-                <p className="mt-2 text-xs text-ink-muted">
-                  Starts {new Date(t.startsAt).toLocaleString()}
-                </p>
-              )}
-              <a href={`https://aventasgaming.com/tournaments/${encodeURIComponent(t.slug)}`}
-                target="_blank" rel="noopener noreferrer"
-                className="mt-4 inline-block text-sm font-semibold text-accent underline underline-offset-4">
-                View official bracket and registration
-              </a>
-            </article>
-          ))}
-        </div>
-      )}
-      <p className="text-xs text-ink-muted">
-        Website listings sync every 60 seconds. Account-linked sign-in, team check-ins and private stats will be enabled after secure desktop authentication is implemented.
-      </p>
-    </section>
-  );
+        <RoundBracket bracket={detail.data} />
+      </>}
+    </div>}
+    <p className="text-xs text-ink-muted">
+      Public data refreshes every 60 seconds while this page is open. Private registrations and team check-ins require authenticated website integration.
+    </p>
+  </section>;
 }
