@@ -2,6 +2,8 @@ import { useState } from 'react';
 import type { ComponentType } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { OverviewPage } from './pages/OverviewPage';
+import { LiveTrackerPage } from './pages/LiveTrackerPage';
+import { AccountProvider } from './platform/AccountContext';
 import { ProfilePage } from './pages/ProfilePage';
 import { MatchHistoryPage } from './pages/MatchHistoryPage';
 import { TournamentsPage } from './pages/TournamentsPage';
@@ -17,6 +19,7 @@ import './App.css';
 /** Every navigable section maps to exactly one page component. */
 const PAGES: Record<NavId, ComponentType> = {
   overview: OverviewPage,
+  live: LiveTrackerPage,
   performance: PerformancePage,
   benchmark: BenchmarkPage,
   insights: InsightsPage,
@@ -33,12 +36,12 @@ function App() {
 
   return (
     // `app-shell` paints the active preset's artwork behind the panels.
-    <div className="app-shell flex h-screen w-screen overflow-hidden text-ink">
+    <AccountProvider><div className="app-shell flex h-screen w-screen overflow-hidden text-ink">
       <Sidebar active={activeNav} onNavigate={setActiveNav} />
       <main className="flex-1 overflow-y-auto">
         <Page />
       </main>
-    </div>
+    </div></AccountProvider>
   );
 }
 
