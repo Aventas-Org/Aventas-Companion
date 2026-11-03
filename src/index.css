@@ -223,3 +223,116 @@ button { -webkit-tap-highlight-color: transparent; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
 }
+
+/* Aventas product workspaces — editorial competitive typography, measured
+ * borders and carefully controlled density. No remote images or font downloads. */
+.workspace-metrics {
+  display: grid; grid-template-columns: repeat(4, minmax(0,1fr));
+  border: 1px solid rgb(var(--color-line) / .85);
+  background: rgb(var(--color-panel) / .76);
+  border-radius: 11px; overflow: hidden;
+}
+.workspace-metric { padding: 23px clamp(15px,2.2vw,28px); min-width: 0; }
+.workspace-metric + .workspace-metric { border-left: 1px solid rgb(var(--color-line) / .7); }
+.workspace-tabs {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 3px;
+  width: fit-content; max-width: 100%;
+  border: 1px solid rgb(var(--color-line));
+  border-radius: 8px; padding: 4px; background: rgb(var(--color-panel) / .7);
+}
+.workspace-tab {
+  min-height: 36px; border-radius: 5px; padding: 8px 14px;
+  font-size: 12px; font-weight: 600; color: rgb(var(--color-ink-muted));
+  transition: background 140ms ease, color 140ms ease;
+}
+.workspace-tab:hover { background: rgb(var(--color-line) / .43); color: rgb(var(--color-ink)); }
+.workspace-tab[aria-pressed='true'] { background: rgb(var(--color-line) / .9); color: rgb(var(--color-ink)); }
+.workspace-panel {
+  border: 1px solid rgb(var(--color-line) / .8); border-radius: 11px;
+  background: rgb(var(--color-panel) / .76); overflow: hidden;
+}
+.workspace-row {
+  display: flex; align-items: center; gap: 15px; padding: 15px 20px;
+  border-bottom: 1px solid rgb(var(--color-line) / .58);
+  transition: background-color .15s ease;
+}
+.workspace-row:last-child { border-bottom: 0; }
+.workspace-row:hover { background: rgb(var(--color-line) / .2); }
+.workspace-team {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; padding: 10px 13px;
+  border-bottom: 1px solid rgb(var(--color-line) / .5);
+  font-size: 12px; min-height: 40px;
+}
+.workspace-team:last-child { border-bottom: 0; }
+.workspace-match {
+  width: 236px; flex: none;
+  background: rgb(var(--color-panel));
+  border: 1px solid rgb(var(--color-line) / .95);
+  border-radius: 9px; overflow: hidden;
+  box-shadow: 0 9px 22px -18px rgb(0 0 0 / .6);
+}
+.workspace-match[data-state='live'] { border-color: rgb(84 205 155 / .46); }
+.workspace-match[data-state='completed'] { border-color: rgb(var(--color-ink-muted) / .28); }
+.workspace-round {
+  display: flex; flex-direction: column; align-items: stretch;
+  width: 236px; min-width: 236px; flex: none;
+}
+.workspace-bracket-lines {
+  position: relative; display: flex; align-items: stretch;
+  gap: 30px; min-width: max-content; overflow: visible;
+}
+.workspace-avatar {
+  display: inline-flex; align-items: center; justify-content: center; flex: none;
+  width: 40px; height: 40px; border-radius: 8px;
+  border: 1px solid rgb(var(--color-line));
+  background: rgb(var(--color-app) / .9);
+  color: rgb(var(--color-accent)); font-family: var(--font-display);
+  font-size: 15px; font-weight: 680;
+}
+.workspace-link {
+  color: rgb(var(--color-accent));
+  font-size: 12px; font-weight: 650;
+  text-decoration: none;
+}
+.workspace-link:hover { text-decoration: underline; text-underline-offset: 3px; }
+.workspace-kbd {
+  display: inline-flex; align-items: center;
+  border: 1px solid rgb(var(--color-line));
+  background: rgb(var(--color-app) / .5);
+  border-radius: 4px; padding: 1px 5px;
+  font-size: 10px; font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  color: rgb(var(--color-ink-muted));
+}
+.workspace-progress {
+  height: 5px; overflow: hidden; border-radius: 100px;
+  background: rgb(var(--color-line) / .75);
+}
+.workspace-progress > span { display: block; height: 100%; border-radius: inherit; background: rgb(var(--color-accent)); }
+@media (max-width: 1120px) {
+ .workspace-metrics { grid-template-columns: repeat(2, minmax(0,1fr)); }
+ .workspace-metric:nth-child(3) { border-left: 0; border-top: 1px solid rgb(var(--color-line) / .7); }
+ .workspace-metric:nth-child(4) { border-top: 1px solid rgb(var(--color-line) / .7); }
+}
+@media (max-width: 600px) {
+ .workspace-row { padding: 12px; gap: 10px; }
+ .workspace-metric { padding: 15px; }
+ .workspace-metric .a-number { font-size: 25px; }
+ .workspace-tabs { width: 100%; }
+ .workspace-tab { flex: 1; padding-inline: 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+ .workspace-row, .workspace-tab { transition: none; }
+}
+
+/* Bracket connections read left-to-right, preserving website-sourced bracket
+ * topology. Each matchup shows its link toward the next round; the vertical
+ * match pairs remain organized by round and official slot. */
+.workspace-branch { position: relative; width: 236px; flex: none; }
+.workspace-branch::after {
+  content: ''; position: absolute; left: 100%; top: 50%;
+  width: 30px; border-top: 1px solid rgb(var(--color-ink-muted) / .33);
+  pointer-events: none;
+}
+.workspace-round:last-child .workspace-branch::after { display: none; }
+.workspace-branch .workspace-match { width: 100%; }

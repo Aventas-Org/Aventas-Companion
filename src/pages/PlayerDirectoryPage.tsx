@@ -1,120 +1,153 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { invoke } from '@tauri-apps/api/core';
+import {
+  PageHeader, SectionHeading, Signal, MetricGrid, EmptyWorkspace,
+  ErrorWorkspace, LoadingWorkspace, formatMetric, formatStamp,
+} from '../components/WorkspaceUI';
 
+interface Rank { tier:string;division:number;rr:number }
 interface PublicPlayer {
-  handle: string; riotId: string; tagline: string; region: string; accountLevel: number;
-  currentRank?: { tier: string; division: number; rr: number };
-  peakRank?: { tier: string; division: number; rr: number };
-  statistics?: { games: number; wins: number; losses: number; winRate: number; kd: number; acs: number; adr: number; headshotPercent: number };
-  topAgents?: Array<{ agent: string; games: number; winRate: number }>;
-  topMaps?: Array<{ map: string; games: number; winRate: number }>;
-  lastUpdated?: number;
+  handle:string;riotId:string;tagline:string;region:string;accountLevel:number;
+  currentRank?:Rank;peakRank?:Rank;lastUpdated?:number;
+  statistics?:{games:number;wins:number;losses:number;winRate:number;kd:number;acs:number;adr:number;headshotPercent:number}|null;
+  topAgents?:Array<{agent:string;games:number;winRate:number}>;
+  topMaps?:Array<{map:string;games:number;winRate:number}>;
 }
-type SearchState = 'idle' | 'loading' | 'ready' | 'error';
-
-function validPublicPlayer(p: unknown): p is PublicPlayer {
-  if (!p || typeof p !== 'object') return false;
-  const r = p as Record<string, unknown>;
-  return typeof r.handle === 'string' && /^[0-9a-f]{18}$/.test(r.handle) &&
-    typeof r.riotId === 'string' && typeof r.tagline === 'string';
+type Status='idle'|'loading'|'ready'|'error';
+function isPlayer(value:unknown):value is PublicPlayer{
+  if(!value||typeof value!=='object')return false;
+  const p=value as Record<string,unknown>;
+  return typeof p.handle==='string'&&/^[0-9a-f]{18}$/.test(p.handle) &&
+    typeof p.riotId==='string'&&typeof p.tagline==='string';
 }
+function rank(value?:Rank){return value?value.tier+' '+value.division+' · '+value.rr+' RR':'Not available';}
 
-export function PlayerDirectoryPage() {
-  const [query, setQuery] = useState('');
-  const [state, setState] = useState<SearchState>('idle');
-  const [rows, setRows] = useState<PublicPlayer[]>([]);
-  const [selected, setSelected] = useState<PublicPlayer | null>(null);
-  const [profileState, setProfileState] = useState<SearchState>('idle');
-  const searchRequest = useRef(0);
-  const profileRequest = useRef(0);
+export function PlayerDirectoryPage(){
+  const [query,setQuery]=useState(''),[status,setStatus]=useState<Status>('idle');
+  const [players,setPlayers]=useState<PublicPlayer[]>([]);
+  const [active,setActive]=useState<PublicPlayer|null>(null);
+  const [profileStatus,setProfileStatus]=useState<Status>('idle');
+  const searchEpoch=useRef(0),profileEpoch=useRef(0);
+  useEffect(()=>()=>{++searchEpoch.current;++profileEpoch.current;},[]);
 
-  useEffect(() => () => {
-    ++searchRequest.current;
-    ++profileRequest.current;
-  }, []);
-
-  async function search(event: FormEvent<HTMLFormElement>) {
+  async function submit(event:FormEvent<HTMLFormElement>){
     event.preventDefault();
-    const text = query.trim();
-    if (text.length < 2 || text.length > 40) { setState('error'); return; }
-    const requestId = ++searchRequest.current;
-    ++profileRequest.current;
-    setState('loading');
-    setProfileState('idle');
-    setSelected(null);
-    try {
-      const payload = await invoke<{ players: unknown[] }>('search_public_players', { query: text });
-      if (!Array.isArray(payload.players)) throw new Error('Unexpected directory result');
-      if (searchRequest.current !== requestId) return;
-      setRows(payload.players.filter(validPublicPlayer));
-      setState('ready');
-    } catch {
-      if (searchRequest.current === requestId) {
-        setRows([]); setState('error');
-      }
+    const term=query.trim();
+    if(term.length<2||term.length>32){setStatus('error');return;}
+    const epoch=++searchEpoch.current;
+    ++profileEpoch.current;setActive(null);setProfileStatus('idle');setStatus('loading');
+    try{
+      const response=await invoke<{players:unknown[]}>('search_public_players',{query:term});
+      if(!Array.isArray(response.players))throw Error('Invalid public directory');
+      if(epoch!==searchEpoch.current)return;
+      setPlayers(response.players.filter(isPlayer));setStatus('ready');
+    }catch{
+      if(epoch===searchEpoch.current){setPlayers([]);setStatus('error');}
     }
   }
-
-  async function openPlayer(player: PublicPlayer) {
-    const requestId = ++profileRequest.current;
-    setProfileState('loading');
-    setSelected(null);
-    try {
-      const data = await invoke<{ player: unknown }>('fetch_public_player', { handle: player.handle });
-      if (!validPublicPlayer(data.player)) throw new Error('Invalid opted-in player');
-      if (profileRequest.current !== requestId) return;
-      setSelected(data.player);
-      setProfileState('ready');
-    } catch {
-      if (profileRequest.current === requestId) setProfileState('error');
-    }
+  async function select(player:PublicPlayer){
+    const epoch=++profileEpoch.current;setProfileStatus('loading');setActive(null);
+    try{
+      const response=await invoke<{player:unknown}>('fetch_public_player',{handle:player.handle});
+      if(!isPlayer(response.player))throw Error('Unverified public profile');
+      if(epoch!==profileEpoch.current)return;
+      setActive(response.player);setProfileStatus('ready');
+    }catch{if(epoch===profileEpoch.current)setProfileStatus('error');}
   }
 
-  const rank = (p?: { tier: string; division: number; rr: number }) =>
-    p ? p.tier + ' ' + String(p.division) + ' · ' + String(p.rr) + ' RR' : 'Not available';
-  const stat = (n: number | undefined, suffix = '', digits = 0) =>
-    typeof n === 'number' && Number.isFinite(n) ? n.toFixed(digits) + suffix : '—';
-
-  return <section className="flex flex-col gap-5 p-6">
-    <header>
-      <h2 className="text-2xl font-semibold text-ink">Player Directory</h2>
-      <p className="mt-1 text-sm text-ink-muted">Search only players who explicitly opted into public visibility on the Aventas website.</p>
-    </header>
-    <form onSubmit={(e) => void search(e)} className="flex max-w-xl gap-3">
-      <input aria-label="Search public players" value={query} onChange={e => setQuery(e.target.value)}
-        placeholder="Riot ID or name (minimum 2 characters)" maxLength={40}
-        className="min-w-0 flex-1 rounded-lg border border-line bg-panel px-4 py-3 text-sm text-ink" />
-      <button disabled={state === 'loading'} type="submit"
-        className="rounded-lg bg-accent px-5 py-2 text-sm font-semibold text-app disabled:opacity-50">Search</button>
-    </form>
-    {state === 'loading' && <p role="status" className="text-sm text-ink-muted">Searching the opted-in directory…</p>}
-    {state === 'error' && <p role="alert" className="text-sm text-amber-300">Unable to search the directory. Check your connection and query.</p>}
-    {state === 'ready' && rows.length === 0 && <p className="text-sm text-ink-muted">No opted-in public profiles match this search.</p>}
-    <div className="grid gap-3 lg:grid-cols-2 xl:grid-cols-3">{rows.map(p =>
-      <button key={p.handle} type="button" onClick={() => void openPlayer(p)}
-        className="rounded-xl border border-line bg-panel p-4 text-left hover:border-accent">
-        <p className="font-semibold text-ink">{p.riotId}#{p.tagline}</p>
-        <p className="mt-1 text-xs text-ink-muted">{p.region} · {rank(p.currentRank)}</p>
-        <p className="mt-3 text-xs text-accent">View public performance</p>
-      </button>)}</div>
-    {profileState === 'loading' && <p role="status" className="text-sm text-ink-muted">Loading consented public player statistics…</p>}
-    {profileState === 'error' && <p role="alert" className="text-sm text-amber-300">The player has no available public profile, or has withdrawn consent.</p>}
-    {profileState === 'ready' && selected && <article className="rounded-xl border border-line bg-panel p-5">
-      <h3 className="text-lg font-semibold text-ink">{selected.riotId}#{selected.tagline}</h3>
-      <p className="mt-2 text-xs text-ink-muted">Current rank: {rank(selected.currentRank)} · Peak: {rank(selected.peakRank)}</p>
-      <div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-4">
-        {[
-          ['Matches', stat(selected.statistics?.games)],
-          ['Win rate', stat(selected.statistics?.winRate, '%', 1)],
-          ['K/D', stat(selected.statistics?.kd, '', 2)],
-          ['ACS', stat(selected.statistics?.acs)],
-        ].map(([label, value]) =>
-          <div className="rounded-lg border border-line bg-app p-3" key={label}>
-            <p className="text-xs text-ink-muted">{label}</p>
-            <p className="mt-2 text-xl font-semibold text-ink">{value}</p>
-          </div>)}
+  return <div className="page-stage space-y-7">
+    <PageHeader eyebrow="Aventas / Community" title="Player directory."
+      description="Find public competitive profiles from the Aventas network. Only players who opted in on the website appear here."/>
+    <section className="a-hero flex flex-col gap-6 p-7 lg:flex-row lg:items-end lg:justify-between lg:p-9">
+      <div className="max-w-[480px]">
+        <Signal tone="accent">Privacy by default</Signal>
+        <h2 className="mt-5 font-display text-[26px] font-semibold leading-[1.15] tracking-[-.035em] text-ink">
+          Discover the competition.<br/>Respect the player.
+        </h2>
+        <p className="mt-3 text-[12px] leading-6 text-ink-muted">
+          Search by a Riot name. The public directory excludes email, account identifiers,
+          private match lists and anyone who has not enabled visibility.
+        </p>
       </div>
-      <p className="mt-4 text-xs text-ink-muted">Reduced, opt-in aggregate statistics only. No email, PUUID or private match history is exposed.</p>
-    </article>}
-  </section>;
+      <form onSubmit={event=>void submit(event)} className="flex w-full max-w-[510px] flex-wrap gap-2">
+        <label className="sr-only" htmlFor="directory-search">Search public Riot name</label>
+        <input id="directory-search" className="a-input min-w-[180px] flex-1"
+          type="search" placeholder="Search Riot ID, e.g. PlayerName"
+          autoComplete="off" minLength={2} maxLength={32}
+          value={query} onChange={event=>setQuery(event.target.value)}/>
+        <button type="submit" disabled={status==='loading'} className="a-button a-button-primary !px-6">
+          {status==='loading'?'Searching…':'Find players'}
+        </button>
+      </form>
+    </section>
+    <div className="grid gap-6 xl:grid-cols-[minmax(300px,.82fr)_minmax(0,1.18fr)]">
+      <section className="workspace-panel self-start">
+        <div className="flex items-center justify-between gap-3 border-b border-line px-5 py-4">
+          <div>
+            <h2 className="font-display text-[17px] font-semibold text-ink">Public profiles</h2>
+            <p className="mt-1 text-[11px] text-ink-muted">Opted-in results only</p>
+          </div>
+          {status==='ready'&&<span className="a-chip">{players.length} found</span>}
+        </div>
+        {status==='idle'&&<div className="p-6"><EmptyWorkspace title="Ready when you are."
+          detail="Enter at least two characters of a player’s Riot name to search the opted-in directory."/></div>}
+        {status==='loading'&&<div className="p-4"><LoadingWorkspace label="Searching the website directory…"/></div>}
+        {status==='error'&&<div className="p-4"><ErrorWorkspace detail="This search could not be completed. Try a shorter Riot name or check your connection."/></div>}
+        {status==='ready'&&players.length===0&&
+          <p className="px-6 py-9 text-[12px] leading-6 text-ink-muted">No opted-in players matched. Hidden accounts will never appear in public search.</p>}
+        {status==='ready'&&players.map(p=><button key={p.handle} type="button"
+          onClick={()=>void select(p)} aria-pressed={active?.handle===p.handle}
+          className={'workspace-row group w-full text-left '+(active?.handle===p.handle?'bg-accent/[.07]':'')}>
+          <span className="workspace-avatar">{p.riotId.slice(0,1).toUpperCase()}</span>
+          <span className="min-w-0 flex-1">
+            <span className="block truncate font-display text-[14px] font-semibold text-ink">{p.riotId}<span className="text-ink-muted">#{p.tagline}</span></span>
+            <span className="mt-1 block text-[11px] text-ink-muted">{p.region||'Region unavailable'} · {rank(p.currentRank)}</span>
+          </span>
+          <span className="text-[17px] text-ink-muted group-hover:text-accent" aria-hidden="true">›</span>
+        </button>)}
+      </section>
+      <section className="min-w-0 space-y-4">
+        {profileStatus==='idle'&&<EmptyWorkspace kicker="Player report" title="Select a public profile."
+          detail="A player’s full opted-in aggregate report appears here. We never reveal private match data, account IDs or personal contact details."/>}
+        {profileStatus==='loading'&&<LoadingWorkspace label="Fetching this player’s opted-in report…"/>}
+        {profileStatus==='error'&&<ErrorWorkspace detail="This profile is no longer public or the website could not load it. Public consent may have changed."/>}
+        {profileStatus==='ready'&&active&&<>
+          <div className="a-panel space-y-5 p-6 sm:p-7">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <span className="workspace-avatar !size-14 !text-[24px]">{active.riotId.slice(0,1).toUpperCase()}</span>
+                <div>
+                  <p className="page-kicker uppercase">Verified public listing</p>
+                  <h2 className="mt-1 font-display text-[23px] font-semibold tracking-[-.035em] text-ink">{active.riotId}<span className="text-ink-muted">#{active.tagline}</span></h2>
+                  <p className="mt-1 text-[11px] text-ink-muted">{active.region||'Region unknown'} · Account level {formatMetric(active.accountLevel)}</p>
+                </div>
+              </div>
+              <Signal tone="live">Visibility enabled</Signal>
+            </div>
+            <div className="grid gap-3 border-t border-line pt-5 sm:grid-cols-2">
+              <div><p className="a-eyebrow">CURRENT RANK</p><p className="mt-2 font-display text-[18px] font-semibold text-ink">{rank(active.currentRank)}</p></div>
+              <div><p className="a-eyebrow">PEAK RANK</p><p className="mt-2 font-display text-[18px] font-semibold text-ink">{rank(active.peakRank)}</p></div>
+            </div>
+          </div>
+          {active.statistics&&active.statistics.games>0?<MetricGrid values={[
+            {label:'MATCHES',value:formatMetric(active.statistics.games),hint:'Public aggregate'},
+            {label:'WIN RATE',value:formatMetric(active.statistics.winRate,1,'%'),hint:'Competitive',tone:'positive'},
+            {label:'K/D RATIO',value:formatMetric(active.statistics.kd,2),hint:'Competitive'},
+            {label:'AVERAGE ACS',value:formatMetric(active.statistics.acs),hint:'Recorded data'},
+          ]}/>:<EmptyWorkspace kicker="Player performance" title="No public match aggregates yet."
+            detail="This player chose to be listed, but no public competitive history has been synchronized. We do not display placeholder wins or ranks."/>}
+          {!!active.topAgents?.length&&<div className="workspace-panel">
+            <div className="border-b border-line px-5 py-4"><SectionHeading title="Most-played agents" detail="Consented competitive aggregate."/></div>
+            {active.topAgents.map((agent,i)=><div key={agent.agent||i} className="workspace-row">
+              <span className="a-number w-7 text-[13px] text-ink-muted">{String(i+1).padStart(2,'0')}</span>
+              <span className="flex-1 text-[12px] font-semibold text-ink">{agent.agent}</span>
+              <span className="text-[11px] text-ink-muted">{formatMetric(agent.games)} games</span>
+              <span className="a-number min-w-14 text-right text-[13px]">{formatMetric(agent.winRate,1,'%')}</span>
+            </div>)}
+          </div>}
+          <p className="text-[11px] leading-5 text-ink-muted">Website aggregate last updated {formatStamp(active.lastUpdated)}. Visibility and consent are controlled by the account owner on the website.</p>
+        </>}
+      </section>
+    </div>
+  </div>;
 }

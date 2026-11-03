@@ -7,6 +7,7 @@ export interface Tournament {
   startsAt?: number;
   region?: string;
   teamCount?: number;
+  registeredTeams?: number;
   prizePool?: string;
   champion?: string;
   registrationOpen?: boolean;

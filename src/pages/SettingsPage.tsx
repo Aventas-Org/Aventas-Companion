@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { SectionCard } from '../components/SectionCard';
+import { AccountPrivacy } from '../components/AccountPrivacy';
 import { SegmentedControl } from '../components/SegmentedControl';
 import { ThemePreview } from '../components/ThemePreview';
 import { CheckIcon } from '../components/icons';
@@ -63,6 +64,7 @@ export function SettingsPage() {
         </p>
       </div>
 
+      <AccountPrivacy />
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
         <nav
           aria-label="Settings sections"
