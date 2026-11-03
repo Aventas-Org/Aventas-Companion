@@ -46,6 +46,16 @@ describe('official website tournament contract', () => {
     }
   });
 
+  it('refuses detached results and forged extreme rounds before rendering', () => {
+    const data = fixture();
+    const detached = { ...data, matches: [match(1, 0), match(2, 0)] };
+    assert.equal(validBracket(detached, 'open-cup'), false);
+    const disconnected = { ...data, matches: [...data.matches, match(1, 6)] };
+    assert.equal(validBracket(disconnected, 'open-cup'), false);
+    assert.equal(validMatch(match(7, 0)), false);
+    assert.equal(validMatch(match(1, 32)), false);
+  });
+
   it('rejects path-like slugs and huge unbounded responses', () => {
     const data = fixture();
     assert.equal(validTournament({ ...data.tournament, slug: '../../admin' }), false);
