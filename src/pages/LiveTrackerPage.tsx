@@ -70,7 +70,7 @@ function Matches({ matches }: { matches: Match[] }) {
   </div>;
 }
 
-function Data({ tab, value }: { tab: Tab; value: RecordData }) {
+function Data({ tab, value, verified }: { tab: Tab; value: RecordData; verified: boolean }) {
   if (tab === 'matches') return <Matches matches={array<Match>(value.matches)} />;
   if (tab === 'dashboard') {
     const stats = object(value.statistics), currentRank = object(object(value.rank).current);
@@ -82,8 +82,8 @@ function Data({ tab, value }: { tab: Tab; value: RecordData }) {
         { name: 'Average ACS', value: metric(stats.acs) },
         { name: 'Average ADR', value: metric(stats.adr) },
         { name: 'Headshot rate', value: metric(stats.headshotPercent, '%', 1) },
-        { name: 'Rank', value: String(currentRank.tier || 'Unranked') },
-        { name: 'Rank rating', value: metric(currentRank.rr, ' RR') },
+        { name: 'Rank', value: verified && Number(stats.games || 0) > 0 ? String(currentRank.tier || 'Unknown') : 'Not verified' },
+        { name: 'Rank rating', value: verified && Number(stats.games || 0) > 0 ? metric(currentRank.rr, ' RR') : '—' },
       ]} />
       <h3 className="text-sm font-semibold uppercase text-ink-muted">Recent official matches</h3>
       <Matches matches={array<Match>(value.recentMatches).slice(0, 8)} />
@@ -126,35 +126,53 @@ function Data({ tab, value }: { tab: Tab; value: RecordData }) {
 }
 
 export function LiveTrackerPage() {
-  const { phase, account, logout } = useAventasAccount();
+  const { phase, account, logout, refresh } = useAventasAccount();
   const [tab, setTab] = useState<Tab>('dashboard');
   const [revision, setRevision] = useState(0);
   const [data, setData] = useState<RecordData | null>(null);
   const [profile, setProfile] = useState<RecordData | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [lastSync, setLastSync] = useState<number | null>(null);
+
+  // Private data is never cached to disk; re-check the website while visible.
+  useEffect(() => {
+    if (phase !== 'signed-in') return;
+    const interval = window.setInterval(() => setRevision(n => n + 1), 60_000);
+    return () => window.clearInterval(interval);
+  }, [phase]);
 
   useEffect(() => {
-    if (phase !== 'signed-in' || !account) { setData(null); setProfile(null); return; }
+    if (phase !== 'signed-in' || !account) {
+      setData(null); setProfile(null); setLastSync(null); return;
+    }
     let ignore = false;
     setLoading(true); setError('');
     void Promise.all([
       invoke<RecordData>('desktop_companion_data', { endpoint: tab }),
       invoke<RecordData>('desktop_companion_data', { endpoint: 'profile' }),
     ]).then(([stats, person]) => {
-      if (!ignore) { setData(stats); setProfile(person); }
-    }).catch(() => {
-      if (!ignore) { setData(null); setProfile(null);
-        setError('Your account is connected, but match data is unavailable. A verified Riot link and authorized backend synchronization are required.'); }
+      if (!ignore) { setData(stats); setProfile(person); setLastSync(Date.now()); }
+    }).catch((cause: unknown) => {
+      if (!ignore) {
+        setData(null); setProfile(null);
+        const message = String(cause);
+        if (message.includes('Session expired') || message.includes('Sign in to your Aventas')) {
+          void refresh();
+        } else {
+          setError('Website data is unavailable. Recheck your connection and verify that your Riot profile is authorized.');
+        }
+      }
     }).finally(() => { if (!ignore) setLoading(false); });
     return () => { ignore = true; };
-  }, [phase, account?.id, tab, revision]);
+  }, [phase, account?.id, tab, revision, refresh]);
 
   const player = object(profile?.player), meta = object(profile?.meta);
   return <section className="flex flex-col gap-5 p-6">
     <header className="flex flex-wrap items-center justify-between gap-4">
       <div><h2 className="text-2xl font-semibold text-ink">Aventas Live Tracker</h2>
-        <p className="mt-1 text-sm text-ink-muted">Real account-scoped website data. No invented match statistics.</p></div>
+        <p className="mt-1 text-sm text-ink-muted">Account-scoped website data; updates every 60 seconds while this page is open. No invented match statistics.</p>
+        {lastSync && phase === 'signed-in' && <p className="mt-1 text-xs text-ink-muted">Checked {new Date(lastSync).toLocaleTimeString()}</p>}</div>
       {phase === 'signed-in' && <div className="flex items-center gap-2 text-sm">
         <span className="text-ink-muted">{account?.name}</span>
         <button className="rounded-lg border border-line px-3 py-2" onClick={() => setRevision(n => n + 1)}>Refresh</button>
@@ -180,7 +198,7 @@ export function LiveTrackerPage() {
       {loading && <p role="status" className="text-sm text-ink-muted">Loading website records…</p>}
       {error && <div className={panel}><p role="alert" className="text-sm text-ink">{error}</p>
         <button className="mt-3 text-sm text-accent underline" onClick={() => setRevision(n => n + 1)}>Retry</button></div>}
-      {!loading && !error && data && <Data tab={tab} value={data} />}
+      {!loading && !error && data && <Data tab={tab} value={data} verified={meta.hasRiotLink === true && meta.isDemo !== true} />}
     </>}
   </section>;
 }
