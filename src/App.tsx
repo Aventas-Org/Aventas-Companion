@@ -4,6 +4,7 @@ import { Sidebar } from './components/Sidebar';
 import { OverviewPage } from './pages/OverviewPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { MatchHistoryPage } from './pages/MatchHistoryPage';
+import { TournamentsPage } from './pages/TournamentsPage';
 import { StatisticsPage } from './pages/StatisticsPage';
 import { PerformancePage } from './pages/PerformancePage';
 import { BenchmarkPage } from './pages/BenchmarkPage';
@@ -20,6 +21,7 @@ const PAGES: Record<NavId, ComponentType> = {
   benchmark: BenchmarkPage,
   insights: InsightsPage,
   matches: MatchHistoryPage,
+  tournaments: TournamentsPage,
   profile: ProfilePage,
   statistics: StatisticsPage,
   settings: SettingsPage,

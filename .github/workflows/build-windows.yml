@@ -5,6 +5,9 @@ name: Build Windows desktop app
 # the installers to a GitHub Release.
 
 on:
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
   push:
     tags:

@@ -10,6 +10,7 @@ import {
   SettingsIcon,
   StatisticsIcon,
   UserIcon,
+  TrophyIcon,
 } from './icons';
 
 const NAV_ICONS: Record<NavId, typeof OverviewIcon> = {
@@ -19,6 +20,7 @@ const NAV_ICONS: Record<NavId, typeof OverviewIcon> = {
   insights: InsightsIcon,
   profile: UserIcon,
   matches: MatchesIcon,
+  tournaments: TrophyIcon,
   statistics: StatisticsIcon,
   settings: SettingsIcon,
 };
