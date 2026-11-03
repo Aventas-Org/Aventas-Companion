@@ -314,3 +314,31 @@ pub fn open_official_tournament(
     app.opener().open_url(url, None::<&str>)
         .map_err(|_| "Unable to open the Aventas website in your browser.".to_string())
 }
+
+
+/// Only the signed-in account may opt its own public directory profile in/out.
+/// The website resolves the user identity from the bearer token. The desktop
+/// cannot choose another member ID and never receives privileged tokens.
+#[tauri::command]
+pub async fn desktop_set_profile_visibility(
+    state: State<'_, ApiState>,
+    window: tauri::WebviewWindow,
+    is_public: bool,
+) -> Result<bool, String> {
+    require_main_window(&window)?;
+    let bearer = state.token()?;
+    let response = state.client.post(format!("{API_ORIGIN}/api/companion/visibility"))
+        .bearer_auth(&bearer)
+        .json(&json!({ "isPublic": is_public }))
+        .send().await.map_err(|_| "Unable to update website privacy settings.".to_string())?;
+    let data = read_json(response).await?;
+    if state.token().ok().as_deref() != Some(bearer.as_str()) {
+        return Err("Account changed during the privacy update.".into());
+    }
+    let confirmed = data.get("isPublic").and_then(Value::as_bool)
+        .ok_or_else(|| "The website did not confirm the privacy update.".to_string())?;
+    if confirmed != is_public {
+        return Err("The website returned a different visibility state.".into());
+    }
+    Ok(confirmed)
+}
