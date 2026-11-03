@@ -34,6 +34,7 @@ fn main() {
             platform_api::desktop_account,
             platform_api::desktop_companion_data,
             platform_api::desktop_logout,
+            platform_api::desktop_set_profile_visibility,
             platform_api::search_public_players,
             platform_api::fetch_public_player,
             check_valorant_process,
