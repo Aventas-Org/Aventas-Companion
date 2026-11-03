@@ -66,12 +66,12 @@ export interface ThemePreset {
 
 /** Harks back to the original charcoal-and-red build. */
 const DARK: ThemePalette = {
-  app: '#0B0C0E',
-  panel: '#16181C',
-  line: '#24272D',
-  ink: '#F3F4F6',
-  inkMuted: '#9CA3AF',
-  accent: '#FF4655',
+  app: '#0D1118',
+  panel: '#171D25',
+  line: '#2A3441',
+  ink: '#F1F2F0',
+  inkMuted: '#A0ADBA',
+  accent: '#F16F63',
   background: 'none',
   scheme: 'dark',
 };
@@ -99,7 +99,7 @@ export const THEME_PRESETS: ThemePreset[] = [
   {
     id: 'dark',
     label: 'Dark',
-    description: 'Neutral charcoal with a VALORANT-red accent.',
+    description: 'Aventas graphite with an esports coral signal.',
     kind: 'dark',
     dark: DARK,
   },
