@@ -5,11 +5,34 @@ import { OverlayControl } from '../components/OverlayControl';
 import { PageHeader, SectionHeading, Signal } from '../components/WorkspaceUI';
 
 interface Metrics { cpuPercent:number|null;memoryPercent:number;totalMemoryBytes:number;usedMemoryBytes:number }
+interface Sample { cpu:number|null;memory:number }
 const percentage=(n:number|null|undefined)=>typeof n==='number'&&Number.isFinite(n)?n.toFixed(1)+'%':'—';
 const gib=(n:number|null|undefined)=>typeof n==='number'&&Number.isFinite(n)?(n/1073741824).toFixed(1)+' GiB':'—';
 const elapsed=(total:number)=>[Math.floor(total/3600),Math.floor(total%3600/60),total%60].map(x=>String(x).padStart(2,'0')).join(':');
 
-function Gauge({ title, value, detail, meter }: {title:string;value:string;detail:string;meter?:number|null}) {
+function LiveSparkline({samples,kind}: {samples:Sample[];kind:'cpu'|'memory'}) {
+  const values=samples.map((s,i)=>({index:i,value:s[kind]}))
+    .filter(p=>typeof p.value==='number'&&Number.isFinite(p.value));
+  if(values.length<2) return <p className="flex h-[58px] items-center text-[11px] text-ink-muted">Collecting Windows samples…</p>;
+  const width=220, height=64, divisor=Math.max(samples.length-1,1);
+  const points=values.map(p=>({
+    x:width*p.index/divisor, y:Math.max(4,Math.min(60,64-(p.value as number)*0.6)),
+  }));
+  const stroke=points.map((p,i)=>(i?'L':'M')+p.x.toFixed(1)+' '+p.y.toFixed(1)).join(' ');
+  const fill=stroke+' L '+points[points.length-1].x.toFixed(1)+' 64 L '+points[0].x.toFixed(1)+' 64 Z';
+  const color=kind==='cpu'?'rgb(var(--color-accent))':'#64bea9';
+  return <svg role="img" aria-label={kind==='cpu'?'Recent Windows CPU utilization':'Recent Windows RAM utilization'}
+    className="h-[58px] w-full" viewBox="0 0 220 64" preserveAspectRatio="none">
+    <title>{kind==='cpu'?'CPU':'RAM'} usage sampled every five seconds</title>
+    <path d="M0 16H220M0 32H220M0 48H220" stroke="rgb(var(--color-line))" strokeWidth=".5" strokeDasharray="3 5"/>
+    <path d={fill} fill={kind==='cpu'?'rgb(var(--color-accent) / .1)':'rgba(100,190,169,.1)'}/>
+    <path d={stroke} stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+  </svg>;
+}
+
+function Gauge({ title, value, detail, meter, history, kind }: {
+  title:string;value:string;detail:string;meter?:number|null;history?:Sample[];kind?:'cpu'|'memory';
+}) {
   return <div className="workspace-panel p-6">
     <div className="flex items-center justify-between">
       <p className="a-eyebrow uppercase">{title}</p>
@@ -19,6 +42,7 @@ function Gauge({ title, value, detail, meter }: {title:string;value:string;detai
     <div className="workspace-progress mt-5">
       <span style={{width:Math.min(100,Math.max(0,meter??0))+'%'}}/>
     </div>
+    {history && kind && <div className="mt-4"><LiveSparkline samples={history} kind={kind}/></div>}
     <p className="mt-4 text-[11px] leading-5 text-ink-muted">{detail}</p>
   </div>;
 }
@@ -29,15 +53,25 @@ export function GamingUtilitiesPage() {
   const [start,setStart]=useState<number|null>(null);
   const [seconds,setSeconds]=useState(0);
   const [metrics,setMetrics]=useState<Metrics|null>(null);
+  const [history,setHistory]=useState<Sample[]>([]);
   const [error,setError]=useState(false);
   const [checked,setChecked]=useState<number|null>(null);
   useEffect(()=>{
-    let stopped=false;
+    let stopped=false,fetching=false;
     async function sample(){
+      if(fetching)return;
+      fetching=true;
       try {
         const response=await invoke<Metrics>('read_system_metrics');
-        if(!stopped){setMetrics(response);setError(false);setChecked(Date.now());}
+        if(!stopped){
+          setMetrics(response);setError(false);setChecked(Date.now());
+          setHistory(current=>[...current,{
+            cpu:typeof response.cpuPercent==='number'?response.cpuPercent:null,
+            memory:response.memoryPercent,
+          }].slice(-24));
+        }
       } catch { if(!stopped){setMetrics(null);setError(true);} }
+      finally{fetching=false;}
     }
     void sample();
     const timer=window.setInterval(()=>void sample(),5000);
@@ -96,8 +130,10 @@ export function GamingUtilitiesPage() {
         trailing={<span className="text-[11px] text-ink-muted">{checked?'Checked '+new Date(checked).toLocaleTimeString():'Waiting for Windows sample'}</span>}/>
       <div className="grid gap-4 md:grid-cols-3">
         <Gauge title="Total CPU load" value={error?'Unavailable':percentage(metrics?.cpuPercent)} meter={metrics?.cpuPercent}
+          history={history} kind="cpu"
           detail="Windows kernel and user time measured between system samples."/>
         <Gauge title="Physical memory" value={error?'Unavailable':percentage(metrics?.memoryPercent)} meter={metrics?.memoryPercent}
+          history={history} kind="memory"
           detail={metrics?gib(metrics.usedMemoryBytes)+' used / '+gib(metrics.totalMemoryBytes)+' installed':'Waiting for RAM totals from Windows.'}/>
         <div className="workspace-panel p-6">
           <p className="a-eyebrow uppercase">Observed game runtime</p>
