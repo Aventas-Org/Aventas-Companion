@@ -1,5 +1,6 @@
 export type NavId =
   | 'overview'
+  | 'live'
   | 'performance'
   | 'benchmark'
   | 'insights'
@@ -18,6 +19,7 @@ export interface NavItem {
 
 export const NAV_ITEMS: NavItem[] = [
   { id: 'overview', label: 'Overview', enabled: true },
+  { id: 'live', label: 'Live Tracker', enabled: true },
   { id: 'performance', label: 'Round Analysis', enabled: true },
   { id: 'benchmark', label: 'Rank Benchmark', enabled: true },
   { id: 'insights', label: 'Insights', enabled: true },
