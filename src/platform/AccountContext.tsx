@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 
 export interface AventasAccount {
@@ -33,14 +33,19 @@ function validAccount(value: unknown): value is AventasAccount {
 export function AccountProvider({ children }: { children: ReactNode }) {
   const [phase, setPhase] = useState<AccountPhase>('checking');
   const [account, setAccount] = useState<AventasAccount | null>(null);
+  // A boot-time /api/me response must never overwrite a later login/logout.
+  const revision = useRef(0);
 
   const refresh = useCallback(async () => {
+    const operation = ++revision.current;
     try {
       const response = await invoke<unknown>('desktop_account');
       if (!validAccount(response)) throw new Error('Account response invalid');
+      if (revision.current !== operation) return;
       setAccount(response);
       setPhase('signed-in');
     } catch {
+      if (revision.current !== operation) return;
       setAccount(null);
       setPhase('signed-out');
     }
@@ -49,18 +54,21 @@ export function AccountProvider({ children }: { children: ReactNode }) {
   useEffect(() => { void refresh(); }, [refresh]);
 
   const login = useCallback(async (email: string, password: string) => {
+    const operation = ++revision.current;
     const response = await invoke<unknown>('desktop_login', { email, password });
     if (!validAccount(response)) throw new Error('The website did not confirm the account.');
+    if (revision.current !== operation) return;
     setAccount(response);
     setPhase('signed-in');
   }, []);
 
   const logout = useCallback(async () => {
-    try { await invoke('desktop_logout'); }
-    finally {
-      setAccount(null);
-      setPhase('signed-out');
-    }
+    ++revision.current;
+    // Hide private profile data immediately. Server revocation is attempted
+    // even when the website is offline; Rust clears the native token first.
+    setAccount(null);
+    setPhase('signed-out');
+    try { await invoke('desktop_logout'); } catch { /* local sign-out still wins */ }
   }, []);
 
   const value = useMemo<AccountContextValue>(() => ({
