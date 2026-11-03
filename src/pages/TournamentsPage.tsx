@@ -74,7 +74,9 @@ function OfficialBracket({ event }: {event:Bracket}) {
               <p className="mt-1 text-[10px] text-ink-muted">{matches.length} matchup{matches.length===1?'':'s'}</p>
             </div>
             <div className="flex flex-1 flex-col justify-around gap-5">
-              {matches.map(m=><MatchCard key={m.id} match={m} round={round}/>)}
+              {matches.map(m=><div className="workspace-branch" key={m.id}>
+                <MatchCard match={m} round={round}/>
+              </div>)}
             </div>
           </section>;
         })}
