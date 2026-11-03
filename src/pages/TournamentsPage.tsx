@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { validTournament, validBracket } from '../services/tournamentContract.mjs';
 import type { Tournament, Match, Bracket } from '../services/tournamentContract.mjs';
@@ -177,12 +177,17 @@ function EventRow({ event, selected, onSelect }: { event:Tournament;selected:boo
 export function TournamentsPage() {
   const [listing,setListing]=useState<ListState>({phase:'loading',rows:[]});
   const [filter,setFilter]=useState<Filter>('all');
+  const [search,setSearch]=useState('');
   const [selected,setSelected]=useState<string|null>(null);
   const [detail,setDetail]=useState<DetailState>({phase:'loading',data:null});
   const [lastSync,setLastSync]=useState<number|null>(null);
   const [revision,setRevision]=useState(0);
   const listRequest=useRef(0);
-  const filtered=listing.rows.filter(e=>filter==='all'||e.status===filter);
+  const filtered=useMemo(()=>listing.rows.filter(e=>
+    (filter==='all'||e.status===filter) &&
+    (!search.trim()||(e.name+' '+(e.game||'')+' '+(e.region||''))
+      .toLowerCase().includes(search.trim().toLowerCase()))
+  ),[listing.rows,filter,search]);
   const current=detail.data?.tournament;
   const [openError,setOpenError]=useState(false);
   async function openOfficial(slug:string){
@@ -236,7 +241,8 @@ export function TournamentsPage() {
       description="Explore the official event calendar, inspect full brackets, and follow results published by Aventas."
       action={<button type="button" onClick={()=>setRevision(v=>v+1)} className="a-button">↻ Refresh events</button>}/>
     <div className="flex flex-wrap items-center justify-between gap-3">
-      <WorkspaceTabs items={FILTERS} value={filter} onChange={setFilter} label="Tournament event status"/>
+      <WorkspaceTabs items={FILTERS} value={filter}
+        onChange={next=>{setFilter(next);setSelected(null);}} label="Tournament event status"/>
       <span className="text-[11px] text-ink-muted">
         {lastSync?'Last website check · '+new Date(lastSync).toLocaleTimeString():'Connecting to Aventas website'}
       </span>
@@ -252,6 +258,12 @@ export function TournamentsPage() {
         <div className="flex items-center justify-between gap-3 border-b border-line px-5 py-4">
           <p className="font-display text-[16px] font-semibold text-ink">Event index</p>
           <span className="a-chip">{filtered.length} events</span>
+        </div>
+        <div className="border-b border-line px-4 py-3">
+          <label className="sr-only" htmlFor="event-search">Search official Aventas tournaments</label>
+          <input id="event-search" className="a-input !min-h-[38px] !text-[12px]"
+            type="search" placeholder="Search events, games or regions…"
+            value={search} onChange={event=>{setSearch(event.target.value);setSelected(null);}}/>
         </div>
         {filtered.length?filtered.map(event=><EventRow key={event.slug} event={event}
           selected={selected===event.slug} onSelect={()=>setSelected(event.slug)}/>):
