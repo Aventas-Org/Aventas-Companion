@@ -4,6 +4,7 @@ export type NavId =
   | 'benchmark'
   | 'insights'
   | 'matches'
+  | 'tournaments'
   | 'profile'
   | 'statistics'
   | 'settings';
@@ -21,6 +22,7 @@ export const NAV_ITEMS: NavItem[] = [
   { id: 'benchmark', label: 'Rank Benchmark', enabled: true },
   { id: 'insights', label: 'Insights', enabled: true },
   { id: 'matches', label: 'Matches', enabled: true },
+  { id: 'tournaments', label: 'Tournaments', enabled: true },
   { id: 'profile', label: 'Profile', enabled: true },
   { id: 'statistics', label: 'Statistics', enabled: true },
   { id: 'settings', label: 'Settings', enabled: true },
