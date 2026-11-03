@@ -14,7 +14,6 @@ const FILTERS: {id:Filter;name:string}[] = [
   {id:'all',name:'All events'},{id:'live',name:'Live'},
   {id:'upcoming',name:'Upcoming'},{id:'completed',name:'Completed'},
 ];
-const websiteLink=(slug:string)=>'https://aventasgaming.com/tournaments/'+encodeURIComponent(slug);
 const timeline=(start?:number)=>start ? formatStamp(start) : 'Date to be announced';
 const teamCount=(t:Tournament)=>t.registeredTeams ?? t.teamCount;
 
@@ -124,6 +123,12 @@ export function TournamentsPage() {
   const listRequest=useRef(0);
   const filtered=listing.rows.filter(e=>filter==='all'||e.status===filter);
   const current=detail.data?.tournament;
+  const [openError,setOpenError]=useState(false);
+  async function openOfficial(slug:string){
+    setOpenError(false);
+    try { await invoke('open_official_tournament',{slug}); }
+    catch { setOpenError(true); }
+  }
 
   const refreshList=useCallback(async()=>{
     const id=++listRequest.current;
@@ -212,8 +217,11 @@ export function TournamentsPage() {
                 <p className="a-number mt-2 text-[24px] text-ink">{detail.data?.matches.length??0}</p></div>
             </div>
             {current?.champion&&<p className="text-[12px] font-semibold text-emerald-400">Champion · {current.champion}</p>}
-            <a className="a-button a-button-primary w-fit" href={websiteLink(selected)}
-              target="_blank" rel="noopener noreferrer">Registration & event details ↗</a>
+            <button type="button" className="a-button a-button-primary w-fit"
+              onClick={()=>void openOfficial(selected)}>Registration & event details ↗</button>
+            {openError&&<p role="alert" className="text-[11px] text-amber-300">
+              The system browser could not be opened. Visit aventasgaming.com to register.
+            </p>}
           </div>}
       </div>
     </div>}
