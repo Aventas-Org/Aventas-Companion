@@ -4,7 +4,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['Segoe UI Variable Text', 'Segoe UI', 'system-ui', 'sans-serif'],
+        display: ['Bahnschrift', 'Segoe UI Variable Display', 'Segoe UI', 'sans-serif'],
       },
       /**
        * Aventas palette: layered surfaces with a single accent.
