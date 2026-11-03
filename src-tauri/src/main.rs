@@ -15,8 +15,9 @@ fn greet(name: &str) -> String {
 
 /// Checks whether the VALORANT game process is running.
 #[tauri::command]
-fn check_valorant_process() -> ValorantProcessResponse {
-    process::check_valorant_process()
+fn check_valorant_process(window: tauri::WebviewWindow) -> Result<ValorantProcessResponse, String> {
+    platform_api::require_main_window(&window)?;
+    Ok(process::check_valorant_process())
 }
 
 fn main() {
