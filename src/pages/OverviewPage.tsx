@@ -1,3 +1,6 @@
+import { useEffect, useState } from 'react';
+import { invoke } from '@tauri-apps/api/core';
+import { useAventasAccount } from '../platform/AccountContext';
 import { InfoCard } from '../components/InfoCard';
 import { NotificationCard, type NotificationTone } from '../components/NotificationCard';
 import { StatCard } from '../components/StatCard';
@@ -41,7 +44,7 @@ function buildStatusView(state: StatusState): StatusView {
     return {
       tone: 'success',
       title: 'VALORANT is running',
-      description: `Monitoring your session (${processName ?? 'VALORANT.exe'}). Match context will be recorded as rounds complete.`,
+      description: `VALORANT process detected (${processName ?? 'VALORANT.exe'}). This is local process monitoring only; live round capture is not enabled.`,
       statusLabel: 'Active',
     };
   }
@@ -67,22 +70,45 @@ function buildStatusView(state: StatusState): StatusView {
 export function OverviewPage() {
   const valorantStatus = useValorantStatus();
   const status = buildStatusView(valorantStatus);
+  const { phase, account } = useAventasAccount();
+  const [dashboard, setDashboard] = useState<Record<string, unknown> | null>(null);
+
+  useEffect(() => {
+    if (phase !== 'signed-in' || !account) { setDashboard(null); return; }
+    let cancelled = false;
+    void invoke<Record<string, unknown>>('desktop_companion_data', { endpoint: 'dashboard' })
+      .then(value => { if (!cancelled) setDashboard(value); })
+      .catch(() => { if (!cancelled) setDashboard(null); });
+    return () => { cancelled = true; };
+  }, [phase, account?.id]);
+
+  const values = dashboard?.statistics && typeof dashboard.statistics === 'object'
+    ? dashboard.statistics as Record<string, unknown> : {};
+  const rank = dashboard?.rank && typeof dashboard.rank === 'object'
+    ? dashboard.rank as Record<string, unknown> : {};
+  const currentRank = rank.current && typeof rank.current === 'object'
+    ? rank.current as Record<string, unknown> : {};
+  const recent = Array.isArray(dashboard?.recentMatches) ? dashboard.recentMatches : [];
+  const latest = recent[0] && typeof recent[0] === 'object' ? recent[0] as Record<string, unknown> : null;
+  const metric = (value: unknown, digits = 0, suffix = '') =>
+    typeof value === 'number' && Number.isFinite(value) ? value.toFixed(digits) + suffix : '--';
+  const connected = phase === 'signed-in';
 
   return (
     <div className="flex flex-1 flex-col gap-5 p-6">
       <header>
         <h2 className="text-xl font-semibold tracking-tight text-ink">Welcome back</h2>
         <p className="mt-1 text-sm text-ink-muted">
-          A summary of your VALORANT activity. Connect your Riot account to populate these stats.
+          Your Aventas website account and verified VALORANT history, when available.
         </p>
       </header>
 
       {/* Metric row */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Matches Played" value="--" helper="No matches recorded yet" />
-        <StatCard label="Win Rate" value="--" helper="No match data available" />
-        <StatCard label="Average ACS" value="--" helper="Combat score pending" />
-        <StatCard label="Current Rank" value="--" helper="Unranked" tone="accent" />
+        <StatCard label="Matches Played" value={metric(values.games)} helper={connected ? 'Official website history' : 'Sign in to Live Tracker'} />
+        <StatCard label="Win Rate" value={metric(values.winRate, 1, '%')} helper={connected ? 'Website-synchronized data' : 'Not connected'} />
+        <StatCard label="Average ACS" value={metric(values.acs)} helper="Only verified match records" />
+        <StatCard label="Current Rank" value={typeof currentRank.tier === 'string' && Number(values.games || 0) > 0 ? currentRank.tier : '--'} helper="Riot link required" tone="accent" />
       </div>
 
       {/* Feed: notifications and context, not a sprawling centred block */}
@@ -98,13 +124,13 @@ export function OverviewPage() {
           />
           <InfoCard
             title="Player Rank"
-            description="You have not been placed in competitive yet. Play your placement matches to earn a rank."
+            description={connected ? 'Rank is shown only when supported by the server-side match history.' : 'Sign in through Live Tracker to view your account rank.'}
             icon={<TrophyIcon />}
             tone="accent"
             footer={
               <div className="flex items-center justify-between">
-                <span className="text-[11px] text-ink-muted">Rank: Unranked</span>
-                <span className="text-[11px] text-ink-muted">0 placements remaining</span>
+                <span className="text-[11px] text-ink-muted">Rank: {currentRank.tier && Number(values.games || 0) > 0 ? String(currentRank.tier) : 'Unavailable'}</span>
+                <span className="text-[11px] text-ink-muted">{typeof currentRank.rr === 'number' && Number(values.games || 0) > 0 ? String(currentRank.rr) + ' RR' : 'No verified RR'}</span>
               </div>
             }
           />
@@ -113,17 +139,17 @@ export function OverviewPage() {
         <div className="flex flex-col gap-4">
           <InfoCard
             title="Last Match"
-            description="No recent match found. History will appear here after your next game."
+            description={latest ? String(latest.map || 'Unknown map') + ' · ' + String(latest.result || 'Result unavailable') : 'No verified recent match is available.'}
             icon={<CrosshairIcon />}
             footer={
               <p className="text-[11px] text-ink-muted">
-                Kills, economy and round context load once a match completes.
+                Only historical match data the website has actually synchronized appears here.
               </p>
             }
           />
           <InfoCard
             title="Session Summary"
-            description="Today's playtime and win/loss record will populate once game detection is active."
+            description="Local process detection shows whether VALORANT is running. Playtime and real-time records are not automatically captured."
             icon={<GamepadIcon />}
             footer={
               <p className="text-[11px] text-ink-muted">
