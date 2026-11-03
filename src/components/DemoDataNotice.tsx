@@ -6,7 +6,7 @@ export function DemoDataNotice() {
     <NotificationCard
       tone="warning"
       title="Demo data — sample matches only"
-      description="The match history shown here is placeholder data used to demonstrate the interface. It is not your real match history. Connect your Riot account to populate actual match data."
+      description="This page uses simulated matches, ranks and analysis. These numbers do not belong to your account. Open Live Tracker and sign in with your Aventas account to view any verified website records. Riot linking requires separate authorization."
       icon={
         <svg
           width="16"
