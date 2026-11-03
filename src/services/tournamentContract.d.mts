@@ -8,6 +8,12 @@ export interface Tournament {
   region?: string;
   teamCount?: number;
   registeredTeams?: number;
+  format?: string;
+  entry?: string;
+  teamSize?: string;
+  maxTeams?: number;
+  summary?: string;
+  updatedAt?: number;
   prizePool?: string;
   champion?: string;
   registrationOpen?: boolean;
