@@ -162,3 +162,40 @@ pub async fn fetch_public_tournament_detail(
     }
     Ok(data)
 }
+
+#[tauri::command]
+pub async fn search_public_players(
+    state: State<'_, ApiState>,
+    query: String,
+) -> Result<Value, String> {
+    let query = query.trim();
+    if query.chars().count() < 2 || query.chars().count() > 40 ||
+       query.chars().any(|c| c.is_control()) {
+        return Err("Search must contain 2–40 visible characters.".into());
+    }
+    let response = state.client.get(format!("{API_ORIGIN}/api/companion/players"))
+        .query(&[("q", query)])
+        .send().await.map_err(|_| "Player directory unavailable.".to_owned())?;
+    let data = read_json(response).await?;
+    if !data.get("players").is_some_and(Value::is_array) {
+        return Err("Invalid player search response.".into());
+    }
+    Ok(data)
+}
+
+#[tauri::command]
+pub async fn fetch_public_player(
+    state: State<'_, ApiState>,
+    handle: String,
+) -> Result<Value, String> {
+    if handle.len() != 18 || !handle.bytes().all(|b| b.is_ascii_hexdigit() && !b.is_ascii_uppercase()) {
+        return Err("Invalid public player handle.".into());
+    }
+    let response = state.client.get(format!("{API_ORIGIN}/api/companion/players/{handle}"))
+        .send().await.map_err(|_| "Player profile unavailable.".to_owned())?;
+    let data = read_json(response).await?;
+    if !data.get("player").is_some_and(Value::is_object) {
+        return Err("Invalid public player profile response.".into());
+    }
+    Ok(data)
+}
