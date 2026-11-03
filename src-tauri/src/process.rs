@@ -29,8 +29,15 @@ pub struct ValorantProcessResponse {
 /// Uses the ToolHelp32 snapshot API (CreateToolhelp32Snapshot + Process32FirstW/NextW)
 /// to enumerate processes and match against the known VALORANT game executable name.
 /// This is a read-only enumeration; it does not open, inject into, or modify any process.
+/// Detect the actual game executable rather than the Riot Client or launcher.
+///
+/// Official Riot support lists VALORANT-Win64-Shipping alongside VALORANT.exe.
+/// The launcher alone does not establish a playable game session.
+fn is_valorant_game_executable(name: &str) -> bool {
+    name.eq_ignore_ascii_case("VALORANT-Win64-Shipping.exe")
+}
+
 pub fn check_valorant_process() -> ValorantProcessResponse {
-    const VALORANT_EXE: &str = "VALORANT.exe";
 
     // Snapshot all processes.
     let snapshot = unsafe { CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0) };
@@ -61,8 +68,8 @@ pub fn check_valorant_process() -> ValorantProcessResponse {
         // Convert the wide-char executable name to a Rust String.
         let exe_name = wide_to_string(&entry.szExeFile);
 
-        // Case-insensitive match against VALORANT.exe.
-        if exe_name.eq_ignore_ascii_case(VALORANT_EXE) {
+        // Match only the actual game process, not the launcher or Vanguard.
+        if is_valorant_game_executable(&exe_name) {
             found = true;
             found_name = Some(exe_name);
             break;
@@ -92,4 +99,23 @@ pub fn check_valorant_process() -> ValorantProcessResponse {
 fn wide_to_string(wide: &[u16; 260]) -> String {
     let len = wide.iter().position(|&c| c == 0).unwrap_or(wide.len());
     String::from_utf16_lossy(&wide[..len])
+}
+
+#[cfg(test)]
+mod tests {
+    use super::is_valorant_game_executable;
+
+    #[test]
+    fn detects_shipping_binary_case_insensitively() {
+        assert!(is_valorant_game_executable("VALORANT-Win64-Shipping.exe"));
+        assert!(is_valorant_game_executable("valorant-win64-shipping.EXE"));
+    }
+
+    #[test]
+    fn ignores_launcher_services_and_substring_spoofs() {
+        for name in ["VALORANT.exe", "RiotClientServices.exe", "vgc.exe",
+                     "not-VALORANT-Win64-Shipping.exe", "VALORANT-Win64-Shipping.exe.bak"] {
+            assert!(!is_valorant_game_executable(name), "{name}");
+        }
+    }
 }
