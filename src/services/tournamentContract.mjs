@@ -2,7 +2,7 @@
  * Pure public-tournament API contract: both desktop UI and Node tests import
  * this file. Nothing here writes scores or invents matches.
  */
-const SLUG = /^[a-z0-9][a-z0-9-]{0,58}[a-z0-9]$/;
+const SLUG = /^[a-z0-9][a-z0-9-]{1,59}$/;
 const STATUS = new Set(['upcoming', 'live', 'completed']);
 const MATCH_STATUS = new Set(['scheduled', 'live', 'completed']);
 
