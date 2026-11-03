@@ -22,7 +22,7 @@ function formatDate(timestamp?: number): string {
   return new Date(timestamp).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
-function SignalGlyph({ running, checking }: { running: boolean; checking: boolean }) {
+function SignalGlyph({ running, checking, unavailable }: { running: boolean; checking: boolean; unavailable: boolean }) {
   return <div className="relative mx-auto flex size-[228px] items-center justify-center sm:size-[252px]" aria-hidden="true">
     <div className={'absolute inset-0 rounded-full ' + (running ? 'bg-emerald-400/[0.045]' : 'bg-accent/[0.025]')} />
     <svg viewBox="0 0 260 260" className={'absolute inset-0 size-full ' + (running ? 'text-emerald-400' : 'text-accent')} fill="none">
@@ -39,7 +39,7 @@ function SignalGlyph({ running, checking }: { running: boolean; checking: boolea
       ? 'border-emerald-400/35 bg-emerald-400/[0.08]' : 'border-line bg-app/85')}>
       <CrosshairIcon width={32} height={32} className={running ? 'text-emerald-400' : 'text-accent'}/>
       <span className="mt-2 font-display text-[12px] font-semibold text-ink">
-        {checking ? 'Scanning' : running ? 'Game active' : 'On standby'}
+        {unavailable ? 'Unavailable' : checking ? 'Scanning' : running ? 'Game active' : 'On standby'}
       </span>
     </div>
     <span className="absolute bottom-0 right-[-12px] rounded-[5px] border border-line bg-app px-2.5 py-1.5 font-mono text-[10px] text-ink-muted">
@@ -143,7 +143,7 @@ export function OverviewPage({ onNavigate }: { onNavigate?: (id: NavId) => void 
       <div className="p-7 sm:p-9 lg:p-11">
         <span className="a-chip" data-tone={running ? 'live' : 'accent'}>
           <span className="a-status-dot" />
-          {running ? 'Local session detected' : 'Companion is ready'}
+          {running ? 'Local session detected' : status.phase === 'error' ? 'Local detector offline' : 'Companion is ready'}
         </span>
         <h2 className="mt-6 max-w-[560px] font-display text-[34px] font-semibold leading-[1.08] tracking-[-.045em] text-ink sm:text-[43px]">
           Every round starts<br/>with better context.
@@ -158,7 +158,7 @@ export function OverviewPage({ onNavigate }: { onNavigate?: (id: NavId) => void 
         </div>
       </div>
       <div className="flex flex-col items-center justify-center gap-2 pb-10 lg:pb-0 lg:pr-7">
-        <SignalGlyph running={running} checking={checking}/>
+        <SignalGlyph running={running} checking={checking} unavailable={status.phase === 'error'}/>
         <p className="mt-2 text-[12px] font-medium text-ink">{processLabel}</p>
         <p className="text-center text-[11px] text-ink-muted">Read-only process detection · no game memory access</p>
       </div>
