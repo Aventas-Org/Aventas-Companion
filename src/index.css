@@ -324,3 +324,15 @@ button { -webkit-tap-highlight-color: transparent; }
 @media (prefers-reduced-motion: reduce) {
  .workspace-row, .workspace-tab { transition: none; }
 }
+
+/* Bracket connections read left-to-right, preserving website-sourced bracket
+ * topology. Each matchup shows its link toward the next round; the vertical
+ * match pairs remain organized by round and official slot. */
+.workspace-branch { position: relative; width: 236px; flex: none; }
+.workspace-branch::after {
+  content: ''; position: absolute; left: 100%; top: 50%;
+  width: 30px; border-top: 1px solid rgb(var(--color-ink-muted) / .33);
+  pointer-events: none;
+}
+.workspace-round:last-child .workspace-branch::after { display: none; }
+.workspace-branch .workspace-match { width: 100%; }
