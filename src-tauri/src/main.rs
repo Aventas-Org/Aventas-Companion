@@ -4,6 +4,7 @@
 mod overlay;
 mod process;
 mod platform_api;
+mod system_metrics;
 
 use overlay::{set_overlay_click_through, set_overlay_visible};
 use process::ValorantProcessResponse;
@@ -23,6 +24,7 @@ fn check_valorant_process(window: tauri::WebviewWindow) -> Result<ValorantProces
 fn main() {
     tauri::Builder::default()
         .manage(platform_api::ApiState::new())
+        .manage(system_metrics::MetricSamples::default())
         .invoke_handler(tauri::generate_handler![
             greet,
             platform_api::fetch_public_tournaments,
@@ -34,6 +36,7 @@ fn main() {
             platform_api::search_public_players,
             platform_api::fetch_public_player,
             check_valorant_process,
+            system_metrics::read_system_metrics,
             set_overlay_visible,
             set_overlay_click_through
         ])
