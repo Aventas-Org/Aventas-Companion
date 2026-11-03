@@ -1,10 +1,13 @@
 export type NavId =
   | 'overview'
+  | 'live'
+  | 'directory'
   | 'performance'
   | 'benchmark'
   | 'insights'
   | 'matches'
   | 'tournaments'
+  | 'utilities'
   | 'profile'
   | 'statistics'
   | 'settings';
@@ -18,11 +21,14 @@ export interface NavItem {
 
 export const NAV_ITEMS: NavItem[] = [
   { id: 'overview', label: 'Overview', enabled: true },
+  { id: 'live', label: 'Live Tracker', enabled: true },
+  { id: 'directory', label: 'Player Directory', enabled: true },
   { id: 'performance', label: 'Round Analysis', enabled: true },
   { id: 'benchmark', label: 'Rank Benchmark', enabled: true },
   { id: 'insights', label: 'Insights', enabled: true },
   { id: 'matches', label: 'Matches', enabled: true },
   { id: 'tournaments', label: 'Tournaments', enabled: true },
+  { id: 'utilities', label: 'Gaming Utilities', enabled: true },
   { id: 'profile', label: 'Profile', enabled: true },
   { id: 'statistics', label: 'Statistics', enabled: true },
   { id: 'settings', label: 'Settings', enabled: true },

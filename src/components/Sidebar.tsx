@@ -15,12 +15,15 @@ import {
 
 const NAV_ICONS: Record<NavId, typeof OverviewIcon> = {
   overview: OverviewIcon,
+  live: PerformanceIcon,
+  directory: UserIcon,
   performance: PerformanceIcon,
   benchmark: BenchmarkIcon,
   insights: InsightsIcon,
   profile: UserIcon,
   matches: MatchesIcon,
   tournaments: TrophyIcon,
+  utilities: SettingsIcon,
   statistics: StatisticsIcon,
   settings: SettingsIcon,
 };
