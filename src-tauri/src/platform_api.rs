@@ -295,3 +295,22 @@ mod tests {
         assert!(store.bearer.is_none());
     }
 }
+
+
+/// Only a validated website tournament link may be opened from the desktop.
+#[tauri::command]
+pub fn open_official_tournament(
+    window: tauri::WebviewWindow,
+    app: tauri::AppHandle,
+    slug: String,
+) -> Result<(), String> {
+    use tauri_plugin_opener::OpenerExt;
+    require_main_window(&window)?;
+    let valid = (2..=60).contains(&slug.len())
+        && !slug.starts_with('-')
+        && slug.bytes().all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == b'-');
+    if !valid { return Err("Invalid tournament identifier.".into()); }
+    let url = format!("{API_ORIGIN}/tournaments/{slug}");
+    app.opener().open_url(url, None::<&str>)
+        .map_err(|_| "Unable to open the Aventas website in your browser.".to_string())
+}
