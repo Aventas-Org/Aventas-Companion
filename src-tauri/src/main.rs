@@ -29,6 +29,7 @@ fn main() {
             greet,
             platform_api::fetch_public_tournaments,
             platform_api::fetch_public_tournament_detail,
+            platform_api::open_official_tournament,
             platform_api::desktop_login,
             platform_api::desktop_account,
             platform_api::desktop_companion_data,
