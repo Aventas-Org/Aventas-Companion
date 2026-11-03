@@ -1,5 +1,6 @@
 //! Strict native HTTPS boundary for the Windows Companion.
-//! No session bearer token or website password is exposed to React or persisted on disk.
+//! Session bearer tokens stay inside Rust memory. Passwords briefly pass from the
+//! React login form through native IPC, but are never persisted or logged.
 //! Website D1 owns account identity and every official match/tournament record.
 use std::sync::Mutex;
 use serde_json::{json, Value};
