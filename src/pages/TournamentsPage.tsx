@@ -83,14 +83,15 @@ export function TournamentsPage() {
 
   useEffect(() => {
     if (!selected) return;
+    const selectedSlug = selected;
     let ignore = false;
     let lastRequest = 0;
     setDetail({ state: 'loading', data: null });
     async function load() {
       const requestId = ++lastRequest;
       try {
-        const value = await invoke<unknown>('fetch_public_tournament_detail', { slug: selected });
-        if (!validBracket(value, selected)) throw new Error('Invalid official bracket');
+        const value = await invoke<unknown>('fetch_public_tournament_detail', { slug: selectedSlug });
+        if (!validBracket(value, selectedSlug)) throw new Error('Invalid official bracket');
         if (!ignore && requestId === lastRequest) setDetail({ state: 'ready', data: value });
       } catch {
         if (!ignore && requestId === lastRequest) setDetail({ state: 'error', data: null });
