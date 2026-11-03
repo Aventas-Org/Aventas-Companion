@@ -96,8 +96,7 @@ export function ProfilePage() {
       <div>
         <h2 className="text-2xl font-semibold tracking-tight text-ink">Player Profile</h2>
         <p className="mt-1 text-sm text-ink-muted">
-          Set up your VALORANT player profile. Enter your Riot ID and region so Aventas Companion
-          can identify you.
+          Preview how a Riot ID could appear locally. This form does not claim or verify an official Riot identity; use the website account for real data.
         </p>
       </div>
       <div className="flex items-start gap-3 rounded-lg border border-amber-500/20 bg-amber-500/5 p-4">

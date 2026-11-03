@@ -36,8 +36,7 @@ export function MatchHistoryPage() {
       <div>
         <h2 className="text-2xl font-semibold tracking-tight text-ink">Match History</h2>
         <p className="mt-1 text-sm text-ink-muted">
-          Review your recent VALORANT matches. Connect your Riot account to populate your real
-          history.
+          Explore a sample match history. Your actual website records are available under Live Tracker once authorized.
         </p>
       </div>
 
@@ -88,7 +87,7 @@ function EmptyState({ filter }: { filter: MatchFilter }) {
       ? 'No victories yet. Play a match to see your wins here.'
       : filter === 'losses'
         ? 'No defeats recorded. Play a match to see your losses here.'
-        : 'No matches recorded. Connect your Riot account to see your match history.';
+        : 'No sample matches match this filter. Real history is in Live Tracker.';
 
   return (
     <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-line bg-panel px-6 py-16 text-center">

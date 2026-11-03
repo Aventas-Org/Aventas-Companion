@@ -153,7 +153,7 @@ export function OverviewPage() {
             icon={<GamepadIcon />}
             footer={
               <p className="text-[11px] text-ink-muted">
-                Tracked automatically while VALORANT is running.
+                Game detection only — no complete playtime record is retained.
               </p>
             }
           />

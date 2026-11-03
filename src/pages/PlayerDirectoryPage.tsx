@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 
 interface PublicPlayer {
@@ -25,30 +25,49 @@ export function PlayerDirectoryPage() {
   const [rows, setRows] = useState<PublicPlayer[]>([]);
   const [selected, setSelected] = useState<PublicPlayer | null>(null);
   const [profileState, setProfileState] = useState<SearchState>('idle');
+  const searchRequest = useRef(0);
+  const profileRequest = useRef(0);
+
+  useEffect(() => () => {
+    ++searchRequest.current;
+    ++profileRequest.current;
+  }, []);
 
   async function search(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const text = query.trim();
     if (text.length < 2 || text.length > 40) { setState('error'); return; }
+    const requestId = ++searchRequest.current;
+    ++profileRequest.current;
     setState('loading');
+    setProfileState('idle');
     setSelected(null);
     try {
       const payload = await invoke<{ players: unknown[] }>('search_public_players', { query: text });
       if (!Array.isArray(payload.players)) throw new Error('Unexpected directory result');
+      if (searchRequest.current !== requestId) return;
       setRows(payload.players.filter(validPublicPlayer));
       setState('ready');
-    } catch { setRows([]); setState('error'); }
+    } catch {
+      if (searchRequest.current === requestId) {
+        setRows([]); setState('error');
+      }
+    }
   }
 
   async function openPlayer(player: PublicPlayer) {
+    const requestId = ++profileRequest.current;
     setProfileState('loading');
     setSelected(null);
     try {
       const data = await invoke<{ player: unknown }>('fetch_public_player', { handle: player.handle });
       if (!validPublicPlayer(data.player)) throw new Error('Invalid opted-in player');
+      if (profileRequest.current !== requestId) return;
       setSelected(data.player);
       setProfileState('ready');
-    } catch { setProfileState('error'); }
+    } catch {
+      if (profileRequest.current === requestId) setProfileState('error');
+    }
   }
 
   const rank = (p?: { tier: string; division: number; rr: number }) =>
