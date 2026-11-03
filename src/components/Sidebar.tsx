@@ -15,6 +15,7 @@ import {
 
 const NAV_ICONS: Record<NavId, typeof OverviewIcon> = {
   overview: OverviewIcon,
+  live: PerformanceIcon,
   performance: PerformanceIcon,
   benchmark: BenchmarkIcon,
   insights: InsightsIcon,
