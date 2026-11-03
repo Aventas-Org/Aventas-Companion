@@ -17,9 +17,33 @@ pub fn require_main_window(window: &tauri::WebviewWindow) -> Result<(), String> 
     Ok(())
 }
 
+#[derive(Default)]
+struct AuthStore {
+    bearer: Option<String>,
+    epoch: u64,
+}
+
+impl AuthStore {
+    fn next_attempt(&mut self) -> u64 {
+        self.epoch = self.epoch.wrapping_add(1);
+        self.epoch
+    }
+
+    fn finish_login(&mut self, request_epoch: u64, bearer: String) -> bool {
+        if self.epoch != request_epoch { return false; }
+        self.bearer = Some(bearer);
+        true
+    }
+
+    fn logout(&mut self) -> Option<String> {
+        self.next_attempt();
+        self.bearer.take()
+    }
+}
+
 pub struct ApiState {
     client: reqwest::Client,
-    bearer: Mutex<Option<String>>,
+    auth: Mutex<AuthStore>,
 }
 
 impl ApiState {
@@ -30,12 +54,12 @@ impl ApiState {
             .redirect(reqwest::redirect::Policy::none())
             .build()
             .expect("could not initialize HTTPS client");
-        Self { client, bearer: Mutex::new(None) }
+        Self { client, auth: Mutex::new(AuthStore::default()) }
     }
 
     fn token(&self) -> Result<String, String> {
-        self.bearer.lock().map_err(|_| "Session unavailable".to_owned())?
-            .clone().ok_or_else(|| "Sign in to your Aventas account first.".to_owned())
+        self.auth.lock().map_err(|_| "Session unavailable".to_owned())?
+            .bearer.clone().ok_or_else(|| "Sign in to your Aventas account first.".to_owned())
     }
 }
 
@@ -71,6 +95,8 @@ pub async fn desktop_login(
     if !email.contains('@') || email.len() > 254 || password.is_empty() || password.len() > 1024 {
         return Err("Enter a valid email and password.".into());
     }
+    let request_epoch = state.auth.lock()
+        .map_err(|_| "Session unavailable".to_owned())?.next_attempt();
     let response = state.client.post(format!("{API_ORIGIN}/api/auth/login"))
         .json(&json!({ "email": email, "password": password }))
         .send().await.map_err(|_| "Could not connect to Aventas.".to_owned())?;
@@ -83,7 +109,11 @@ pub async fn desktop_login(
     if !account.get("id").is_some_and(Value::is_string) || !account.get("name").is_some_and(Value::is_string) {
         return Err("Account response is invalid.".into());
     }
-    *state.bearer.lock().map_err(|_| "Session unavailable".to_owned())? = Some(bearer);
+    // Serialize login completion with logout and competing login attempts.
+    let mut auth = state.auth.lock().map_err(|_| "Session unavailable".to_owned())?;
+    if !auth.finish_login(request_epoch, bearer) {
+        return Err("This sign-in attempt was superseded.".into());
+    }
     // Only the account summary enters the webview; never send back the bearer.
     Ok(account)
 }
@@ -96,8 +126,10 @@ async fn authorized_get(state: &ApiState, endpoint: &str) -> Result<Value, Strin
     let unauthorized = response.status() == reqwest::StatusCode::UNAUTHORIZED;
     if unauthorized {
         // Revoked/expired session is not reused for another request.
-        if let Ok(mut guard) = state.bearer.lock() {
-            if guard.as_deref() == Some(bearer.as_str()) { *guard = None; }
+        if let Ok(mut auth) = state.auth.lock() {
+            if auth.bearer.as_deref() == Some(bearer.as_str()) {
+                auth.logout();
+            }
         }
     }
     let data = read_json(response).await?;
@@ -143,7 +175,7 @@ pub async fn desktop_companion_data(
 pub async fn desktop_logout(state: State<'_, ApiState>, window: tauri::WebviewWindow) -> Result<(), String> {
     require_main_window(&window)?;
     // Fail closed locally even if website network logout cannot be delivered.
-    let token = state.bearer.lock().map_err(|_| "Session unavailable".to_owned())?.take();
+    let token = state.auth.lock().map_err(|_| "Session unavailable".to_owned())?.logout();
     if let Some(bearer) = token {
         let _ = state.client.post(format!("{API_ORIGIN}/api/auth/logout"))
             .bearer_auth(bearer).send().await;
@@ -240,5 +272,25 @@ mod tests {
     #[test]
     fn response_size_is_bounded() {
         assert!(super::MAX_RESPONSE <= 2 * 1024 * 1024);
+    }
+
+    #[test]
+    fn login_after_logout_cannot_restore_an_old_session() {
+        let mut store = super::AuthStore::default();
+        let old_attempt = store.next_attempt();
+        assert!(store.logout().is_none());
+        assert!(!store.finish_login(old_attempt, "old-token".to_owned()));
+        assert!(store.bearer.is_none());
+    }
+
+    #[test]
+    fn a_newer_login_suppresses_an_older_in_flight_request() {
+        let mut store = super::AuthStore::default();
+        let first = store.next_attempt();
+        let second = store.next_attempt();
+        assert!(!store.finish_login(first, "A".to_owned()));
+        assert!(store.finish_login(second, "B".to_owned()));
+        assert_eq!(store.logout().as_deref(), Some("B"));
+        assert!(store.bearer.is_none());
     }
 }
