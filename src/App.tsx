@@ -3,6 +3,7 @@ import type { ComponentType } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { OverviewPage } from './pages/OverviewPage';
 import { LiveTrackerPage } from './pages/LiveTrackerPage';
+import { PlayerDirectoryPage } from './pages/PlayerDirectoryPage';
 import { AccountProvider } from './platform/AccountContext';
 import { ProfilePage } from './pages/ProfilePage';
 import { MatchHistoryPage } from './pages/MatchHistoryPage';
@@ -21,6 +22,7 @@ import './App.css';
 const PAGES: Record<NavId, ComponentType> = {
   overview: OverviewPage,
   live: LiveTrackerPage,
+  directory: PlayerDirectoryPage,
   performance: PerformancePage,
   benchmark: BenchmarkPage,
   insights: InsightsPage,
