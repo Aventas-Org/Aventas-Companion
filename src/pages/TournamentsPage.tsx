@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 
 interface Tournament {
@@ -28,7 +28,11 @@ function validMatch(value: unknown): value is Match {
   if (!value || typeof value !== 'object') return false;
   const m = value as Record<string, unknown>;
   return typeof m.id === 'string' && Number.isInteger(m.round) && Number.isInteger(m.slot) &&
+    m.round as number >= 1 && m.slot as number >= 0 &&
     typeof m.teamA === 'string' && typeof m.teamB === 'string' &&
+    typeof m.scoreA === 'number' && Number.isFinite(m.scoreA) &&
+    typeof m.scoreB === 'number' && Number.isFinite(m.scoreB) &&
+    m.scoreA >= 0 && m.scoreB >= 0 &&
     ['scheduled', 'live', 'completed'].includes(String(m.status));
 }
 function time(ts?: number) {
@@ -76,36 +80,54 @@ export function TournamentsPage() {
   const [selected, setSelected] = useState<string | null>(null);
   const [detail, setDetail] = useState<DetailState>({ state: 'loading', data: null });
   const [revision, setRevision] = useState(0);
+  const [lastSync, setLastSync] = useState<number | null>(null);
+  const listRevision = useRef(0);
 
   const refreshList = useCallback(async () => {
+    const requestId = ++listRevision.current;
     try {
       const payload = await invoke<{ tournaments: unknown[] }>('fetch_public_tournaments');
       if (!Array.isArray(payload?.tournaments)) throw new Error('Invalid list');
       const rows = payload.tournaments.filter(validTournament);
+      if (requestId !== listRevision.current) return;
       setList({ state: 'ready', rows });
+      setLastSync(Date.now());
+      setSelected(current => current && !rows.some(t => t.slug === current) ? null : current);
     } catch {
-      setList(prev => ({ state: 'error', rows: prev.rows }));
+      if (requestId === listRevision.current) {
+        setList(prev => ({ state: 'error', rows: prev.rows }));
+      }
     }
   }, []);
 
   useEffect(() => {
     void refreshList();
     const interval = window.setInterval(() => void refreshList(), 60_000);
-    return () => window.clearInterval(interval);
+    return () => {
+      ++listRevision.current;
+      window.clearInterval(interval);
+    };
   }, [refreshList, revision]);
 
   useEffect(() => {
     if (!selected) return;
     let ignore = false;
+    let lastRequest = 0;
     setDetail({ state: 'loading', data: null });
     async function load() {
+      const requestId = ++lastRequest;
       try {
         const value = await invoke<Bracket>('fetch_public_tournament_detail', { slug: selected });
-        if (!validTournament(value.tournament) || !Array.isArray(value.matches) ||
-            !value.matches.every(validMatch) || !Array.isArray(value.teams)) throw new Error('Invalid bracket');
-        if (!ignore) setDetail({ state: 'ready', data: value });
+        if (!validTournament(value.tournament) || value.tournament.slug !== selected ||
+            !Array.isArray(value.matches) || value.matches.length > 128 ||
+            !value.matches.every(validMatch) || !Array.isArray(value.teams)) {
+          throw new Error('Invalid official bracket');
+        }
+        const slots = new Set(value.matches.map(match => String(match.round) + ':' + String(match.slot)));
+        if (slots.size !== value.matches.length) throw new Error('Duplicated bracket slot');
+        if (!ignore && requestId === lastRequest) setDetail({ state: 'ready', data: value });
       } catch {
-        if (!ignore) setDetail({ state: 'error', data: null });
+        if (!ignore && requestId === lastRequest) setDetail({ state: 'error', data: null });
       }
     }
     void load();
@@ -118,8 +140,13 @@ export function TournamentsPage() {
     <header className="flex flex-wrap items-start justify-between gap-4">
       <div><h2 className="text-2xl font-semibold text-ink">Aventas Tournaments</h2>
         <p className="mt-1 text-sm text-ink-muted">Official tournament listings, brackets and results synchronized from the website.</p></div>
-      <button type="button" onClick={() => setRevision(n => n + 1)}
-        className="rounded-lg border border-line px-4 py-2 text-sm text-ink hover:bg-line">Refresh</button>
+      <div className="flex flex-wrap items-center gap-3">
+        <span className="text-xs text-ink-muted">
+          {lastSync ? 'Website checked ' + new Date(lastSync).toLocaleTimeString() : 'Not synchronized yet'}
+        </span>
+        <button type="button" onClick={() => setRevision(n => n + 1)}
+          className="rounded-lg border border-line px-4 py-2 text-sm text-ink hover:bg-line">Refresh</button>
+      </div>
     </header>
     {list.state === 'loading' && <p role="status" className="text-sm text-ink-muted">Loading website tournaments…</p>}
     {list.state === 'error' && <p role="alert" className="rounded-lg border border-amber-500/30 bg-panel p-4 text-sm text-ink">The official website is unavailable. Previous listings may be outdated.</p>}
@@ -131,6 +158,9 @@ export function TournamentsPage() {
         <h3 className="font-semibold text-ink">{t.name}</h3>
         <p className="mt-1 text-xs capitalize text-ink-muted">{t.status} · {t.game || 'Valorant'} · {t.region || 'Global'}</p>
         <p className="mt-3 text-sm text-ink-muted">{time(t.startsAt)}</p>
+        <p className="mt-1 text-xs text-ink-muted">
+          {t.registrationOpen ? 'Registration open' : 'Registration status: see website'}
+        </p>
       </button>)}</div>
     {selected && <div className="space-y-4">
       {detail.state === 'loading' && <p role="status" className="text-sm text-ink-muted">Retrieving official bracket…</p>}
