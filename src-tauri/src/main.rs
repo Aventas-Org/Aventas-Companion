@@ -30,6 +30,8 @@ fn main() {
             platform_api::desktop_account,
             platform_api::desktop_companion_data,
             platform_api::desktop_logout,
+            platform_api::search_public_players,
+            platform_api::fetch_public_player,
             check_valorant_process,
             set_overlay_visible,
             set_overlay_click_through
