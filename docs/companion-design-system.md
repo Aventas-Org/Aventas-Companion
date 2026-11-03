@@ -71,6 +71,10 @@ build**, not a verified signed production installer.
 8. Utilities: launch/close VALORANT, confirm actual shipping executable detection,
    CPU and RAM system-wide figures, timer reset and overlay toggle. No
    game memory access or unsupported FPS/temperature claim.
+8a. Settings: with a real test account, leave player directory visibility off
+    by default, opt in after the explicit confirmation, verify searchable
+    public aggregates, opt out and confirm the listing disappears. Never expose
+    email/PUUID/private match history.
 9. Disable network: public and authenticated pages should fail visibly without
    backfilling demo data. Reconnect and retry.
 10. Windows SmartScreen may flag unsigned development builds; do not override
