@@ -1,94 +1,71 @@
 import { useState } from 'react';
-import {
-  isDesktopShell,
-  setOverlayClickThrough,
-  setOverlayVisible,
-} from '../services/overlayWindow';
+import { isDesktopShell, setOverlayVisible } from '../services/overlayWindow';
 
 /**
- * Controls for the native overlay window.
- *
- * These live in the dashboard rather than in the overlay itself, because a
- * click-through overlay cannot receive clicks — the whole point of click-through
- * is that input passes straight to the game. So the overlay is pure display and
- * every control sits here.
+ * The practice HUD is demo-only and always click-through. No interactive
+ * overlay control should take focus or mouse input away from VALORANT.
  */
 export function OverlayControl() {
   const desktop = isDesktopShell();
   const [acknowledged, setAcknowledged] = useState(false);
   const [visible, setVisible] = useState(false);
-  const [clickThrough, setClickThrough] = useState(true);
+  const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
-  const toggleVisible = async (next: boolean) => {
-    const ok = await setOverlayVisible(next);
-    if (!ok) {
-      setMessage('Overlay is only available in the Windows desktop app.');
-      return;
+  async function toggle(show: boolean) {
+    if (busy || !desktop) return;
+    setBusy(true);
+    setMessage(null);
+    try {
+      // Rust applies click-through *before* showing the overlay.
+      const changed = await setOverlayVisible(show);
+      if (!changed) {
+        setMessage('The Windows overlay could not be updated. It remains hidden if click-through is unavailable.');
+        if (show) setVisible(false);
+        return;
+      }
+      setVisible(show);
+    } catch {
+      setMessage('The Windows overlay could not be updated.');
+      setVisible(false);
+    } finally {
+      setBusy(false);
     }
-    setVisible(next);
-    if (next) {
-      // Overlays ship click-through by default so input always reaches the game.
-      const clickOk = await setOverlayClickThrough(clickThrough);
-      setMessage(clickOk ? null : 'Shown, but click-through could not be set.');
-    } else {
-      setMessage(null);
-    }
-  };
+  }
 
-  const toggleClickThrough = async (next: boolean) => {
-    const ok = await setOverlayClickThrough(next);
-    if (!ok) {
-      setMessage('Click-through is only available in the Windows desktop app.');
-      return;
-    }
-    setClickThrough(next);
-    setMessage(next ? 'Clicks now pass through to VALORANT.' : 'Overlay is interactive.');
-  };
-
-  return (
-    <div className="rounded-lg border border-line bg-panel px-3 py-3">
-      <p className="text-xs font-medium text-ink-muted">In-game overlay</p>
-
-      {!desktop && (
-        <p className="mt-1 text-[11px] leading-relaxed text-ink-muted">
-          Desktop app only. Open <code className="text-ink-muted">?view=overlay</code> to preview
-          the HUD here.
+  return <div className="space-y-4">
+    <div className="flex items-start justify-between gap-3">
+      <div>
+        <p className="font-display text-[16px] font-semibold text-ink">Practice overlay</p>
+        <p className="mt-1 text-[11px] text-ink-muted">
+          Sample personal post-match analysis only. Not official Riot data.
         </p>
-      )}
-
-      <label className="mt-2 flex cursor-pointer items-start gap-2 text-[11px] leading-relaxed text-ink-muted">
-        <input
-          type="checkbox"
-          checked={acknowledged}
-          onChange={(event) => setAcknowledged(event.target.checked)}
-          className="mt-0.5 accent-accent"
-        />
-        <span>
-          Historical stats only — no live or opponent information, per Riot’s third-party policy.
-        </span>
-      </label>
-
-      <div className="mt-2 flex flex-col gap-1.5">
-        <button
-          type="button"
-          disabled={!desktop || !acknowledged}
-          onClick={() => void toggleVisible(!visible)}
-          className="rounded-md bg-accent/15 px-2.5 py-1.5 text-[11px] font-medium text-ink hover:bg-accent/20 disabled:cursor-not-allowed disabled:bg-line disabled:text-ink-muted"
-        >
-          {visible ? 'Hide overlay' : 'Show overlay'}
-        </button>
-        <button
-          type="button"
-          disabled={!desktop || !visible}
-          onClick={() => void toggleClickThrough(!clickThrough)}
-          className="rounded-md border border-line px-2.5 py-1.5 text-[11px] font-medium text-ink hover:bg-line disabled:cursor-not-allowed disabled:text-ink-muted"
-        >
-          Click-through: {clickThrough ? 'on' : 'off'}
-        </button>
       </div>
-
-      {message && <p className="mt-2 text-[10px] leading-relaxed text-amber-300">{message}</p>}
+      <span className="a-chip" data-tone={visible ? 'live' : 'neutral'}>
+        {visible ? 'Visible' : 'Hidden'}
+      </span>
     </div>
-  );
+    {!desktop && <div className="a-empty !p-4">Install the Windows desktop app to use the overlay. Browser previews cannot control native game windows.</div>}
+    <label className="flex cursor-pointer items-start gap-3 rounded-[8px] border border-line bg-app/45 p-4 text-[12px] leading-6 text-ink-muted">
+      <input type="checkbox" checked={acknowledged} disabled={busy}
+        onChange={event => {
+          const checked=event.target.checked;
+          setAcknowledged(checked);
+          if (!checked && visible) void toggle(false);
+        }} className="mt-1 accent-accent"/>
+      <span>I understand this overlay shows simulated historical statistics, not my verified VALORANT history or live match information.</span>
+    </label>
+    <div className="flex flex-wrap items-center gap-3">
+      <button type="button" className="a-button a-button-primary"
+        disabled={!desktop || busy || (!acknowledged && !visible)}
+        onClick={() => void toggle(!visible)}>
+        {busy ? 'Updating…' : visible ? 'Hide preview overlay' : 'Show preview overlay'}
+      </button>
+      <p className="text-[11px] text-ink-muted">Mouse input always passes through to the game.</p>
+    </div>
+    {message && <p role="status" className="text-[11px] leading-5 text-amber-300">{message}</p>}
+    <p className="border-t border-line pt-4 text-[11px] leading-5 text-ink-muted">
+      If Windows cannot enable click-through, the overlay will not open. This build never reads process memory, provides live opponent information, or changes gameplay inputs.
+    </p>
+  </div>;
 }

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { validTournament, validBracket } from '../services/tournamentContract.mjs';
 import type { Tournament, Match, Bracket } from '../services/tournamentContract.mjs';
@@ -17,75 +17,136 @@ const FILTERS: {id:Filter;name:string}[] = [
 const timeline=(start?:number)=>start ? formatStamp(start) : 'Date to be announced';
 const teamCount=(t:Tournament)=>t.registeredTeams ?? t.teamCount;
 
-function MatchCard({ match, round }: {match:Match;round:number}) {
-  const finished=match.status==='completed';
-  const winner=finished&&match.scoreA!==match.scoreB?(match.scoreA>match.scoreB?0:1):null;
-  const sides:[string,number][]=[[match.teamA,match.scoreA],[match.teamB,match.scoreB]];
-  return <article className="workspace-match" data-state={match.status}
-    aria-label={'Round '+round+' match '+(match.slot+1)+': '+(match.teamA||'TBD')+' versus '+(match.teamB||'TBD')}>
-    <div className="flex items-center justify-between border-b border-line/55 px-3 py-2">
-      <span className="font-mono text-[10px] text-ink-muted">R{round} · M{match.slot+1}</span>
-      <span className={'flex items-center gap-1.5 text-[10px] font-semibold uppercase '+
-        (match.status==='live'?'text-emerald-400':'text-ink-muted')}>
-        {match.status==='live'&&<span className="a-status-dot animate-pulse" aria-hidden="true"/>}
-        {match.status==='live'?'Live':finished?'Final':'Scheduled'}
+const humanDate=(date?:number)=>typeof date==='number'&&date>0&&Number.isFinite(date)
+  ? new Date(date).toLocaleString(undefined,{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'})
+  : 'Schedule to be announced';
+const stage=(round:number,finalRound:number)=>round===finalRound?'Grand final':round===finalRound-1?'Semifinals':round===finalRound-2?'Quarterfinals':'Round '+round;
+const statusLabel=(value:string)=>value==='live'?'Live':value==='completed'?'Finished':'Upcoming';
+
+function MatchCard({ match, active, onSelect }: { match: Match; active: boolean; onSelect: () => void }) {
+  const showScore = match.status === 'completed' || match.status === 'live';
+  const scoreA = showScore ? match.scoreA : null;
+  const scoreB = showScore ? match.scoreB : null;
+  const winA = match.status === 'completed' && scoreA !== null && scoreB !== null && scoreA > scoreB;
+  const winB = match.status === 'completed' && scoreA !== null && scoreB !== null && scoreB > scoreA;
+
+  return <button type="button" onClick={onSelect} aria-pressed={active}
+    aria-label={`Match ${match.slot + 1}: ${match.teamA || 'TBD'} versus ${match.teamB || 'TBD'}; ${statusLabel(match.status)}`}
+    className={'group block h-[104px] w-[238px] overflow-hidden rounded-[9px] border text-left transition-[border-color,background] duration-150 ' +
+      (active ? 'border-accent bg-accent/[0.065]' : 'border-line bg-panel hover:border-ink-muted/50')}>
+    <div className="flex h-[39px] items-center justify-between gap-3 border-b border-line/60 px-3">
+      <span className={'min-w-0 truncate text-[12px] ' + (winA ? 'font-bold text-ink' : 'font-medium text-ink-muted')}>
+        {match.teamA || 'To be decided'}
+      </span>
+      <span className={'a-number text-[16px] ' + (winA ? 'text-emerald-400' : 'text-ink')}>
+        {scoreA ?? '—'}
       </span>
     </div>
-    {sides.map(([name,score],index)=><div key={index} className={'workspace-team '+
-      (winner===index?'bg-emerald-400/[.05]':'')}>
-      <div className="flex min-w-0 items-center gap-2">
-        <span className={'size-1.5 shrink-0 rounded-full '+(winner===index?'bg-emerald-400':'bg-line')}/>
-        <span className={'truncate '+(winner===index?'font-semibold text-ink':'text-ink-muted')}>
-          {name||'To be decided'}
-        </span>
-      </div>
-      <span className={'a-number text-[14px] '+(winner===index?'text-emerald-400':'text-ink')}>
-        {finished?score:'—'}
+    <div className="flex h-[39px] items-center justify-between gap-3 border-b border-line/60 px-3">
+      <span className={'min-w-0 truncate text-[12px] ' + (winB ? 'font-bold text-ink' : 'font-medium text-ink-muted')}>
+        {match.teamB || 'To be decided'}
       </span>
-    </div>)}
-  </article>;
+      <span className={'a-number text-[16px] ' + (winB ? 'text-emerald-400' : 'text-ink')}>
+        {scoreB ?? '—'}
+      </span>
+    </div>
+    <div className="flex h-[26px] items-center justify-between px-3 text-[10px]">
+      <span className={'font-semibold ' + (match.status === 'live' ? 'text-emerald-400' : 'text-ink-muted')}>
+        {match.status === 'live' ? '● Live' : match.status === 'completed' ? 'Final' : 'Awaiting play'}
+      </span>
+      <span className="text-ink-muted">Match {match.slot + 1}</span>
+    </div>
+  </button>;
 }
 
-function OfficialBracket({ event }: {event:Bracket}) {
-  if(!event.matches.length) return <EmptyWorkspace kicker="Official bracket" title="Pairings have not been released."
-    detail="The event organizer has not built an official bracket yet. As soon as the website publishes its matchups, the next sync will display them here."/>;
-  const rounds=[...new Set(event.matches.map(m=>m.round))].sort((a,b)=>a-b);
-  const final=rounds[rounds.length-1];
-  const title=(round:number)=>round===final?'Grand final':
-    round===final-1?'Semifinals':round===final-2?'Quarterfinals':'Round '+round;
-
-  return <div className="workspace-panel">
-    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-5 py-4">
-      <div>
-        <p className="font-display text-[16px] font-semibold text-ink">Official single-elimination bracket</p>
-        <p className="mt-1 text-[11px] text-ink-muted">All teams advance according to the website’s approved results. Horizontal scroll for full bracket.</p>
-      </div>
-      <Signal tone="live">Source: Aventas website</Signal>
-    </div>
-    <div className="overflow-x-auto px-6 py-8" role="region" aria-label="Tournament bracket; scroll horizontally to view rounds" tabIndex={0}>
-      <div className="workspace-bracket-lines">
-        {rounds.map(round=>{
-          const matches=event.matches.filter(m=>m.round===round).sort((a,b)=>a.slot-b.slot);
-          return <section className="workspace-round" key={round} aria-label={title(round)}>
-            <div className="mb-7 border-b border-line pb-3">
-              <p className="page-kicker uppercase">Stage {String(round).padStart(2,'0')}</p>
-              <h3 className="mt-1 font-display text-[16px] font-semibold text-ink">{title(round)}</h3>
-              <p className="mt-1 text-[10px] text-ink-muted">{matches.length} matchup{matches.length===1?'':'s'}</p>
-            </div>
-            <div className="flex flex-1 flex-col justify-around gap-5">
-              {matches.map(m=><div className="workspace-branch" key={m.id}>
-                <MatchCard match={m} round={round}/>
-              </div>)}
-            </div>
-          </section>;
-        })}
-      </div>
-    </div>
-    <div className="flex items-center justify-between gap-3 border-t border-line px-5 py-4 text-[11px] text-ink-muted">
-      <span>Results are read-only here. Organizers update the website.</span>
-      <span className="font-mono">SINGLE ELIMINATION</span>
-    </div>
+/** Single elimination from official (round, slot). Connectors are derived from
+ * parent slots only for display. The app never generates a matchup or score. */
+function OfficialBracket({ bracket }: { bracket: Bracket }) {
+  const [selected, setSelected] = useState<string | null>(null);
+  if (bracket.tournament.format && bracket.tournament.format !== 'single_elimination') {
+    return <div className="a-empty">
+      <p className="font-semibold text-ink">This bracket format is not yet supported</p>
+      <p className="mt-1">Companion can display single-elimination trees. Use the official website for other competition formats.</p>
+    </div>;
+  }
+  if (!bracket.matches.length) return <div className="a-empty">
+    <p className="font-semibold text-ink">Bracket not published</p>
+    <p className="mt-1">The organizer will populate official pairings on the website. This screen updates when they do.</p>
   </div>;
+
+  const finalRound = Math.max(...bracket.matches.map(m => m.round));
+  const rounds = Array.from(new Set(bracket.matches.map(m => m.round))).sort((a, b) => a - b);
+  const boardWidth = rounds.length * 238 + Math.max(0, rounds.length - 1) * 86;
+  const unit = 144;
+  const cardHeight = 104;
+  const columnWidth = 324;
+  const topFor = (round: number, slot: number) =>
+    (Math.pow(2, round - 1) - 1) * unit / 2 + slot * Math.pow(2, round - 1) * unit + 55;
+  const boardHeight = Math.max(280, ...bracket.matches.map(m => topFor(m.round, m.slot) + cardHeight + 28));
+  const ordered = [...bracket.matches].sort((a, b) => a.round - b.round || a.slot - b.slot);
+  const bySlot = new Map(bracket.matches.map(m => [m.round + ':' + m.slot, m]));
+  const details = bracket.matches.find(m => m.id === selected) ??
+    bracket.matches.find(m => m.status === 'live') ??
+    bracket.matches.find(m => m.round === finalRound);
+
+  return <section className="space-y-4" aria-label="Official tournament bracket">
+    <div className="a-panel overflow-hidden">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-5 py-4">
+        <div>
+          <h3 className="font-display text-[17px] font-semibold text-ink">Official bracket</h3>
+          <p className="mt-1 text-[11px] text-ink-muted">Website pairings · Scroll horizontally to follow the path to the final</p>
+        </div>
+        <div className="flex items-center gap-3 text-[11px] text-ink-muted">
+          <span>{rounds.length} round{rounds.length === 1 ? '' : 's'}</span>
+          <span className="h-3 w-px bg-line" aria-hidden="true"/>
+          <span>{bracket.matches.length} match{bracket.matches.length === 1 ? '' : 'es'}</span>
+        </div>
+      </div>
+      <div className="overflow-x-auto px-5 pb-5">
+        <div className="relative mt-5" style={{ width: boardWidth, height: boardHeight }}>
+          <svg aria-hidden="true" className="pointer-events-none absolute inset-0" width={boardWidth} height={boardHeight} fill="none">
+            {ordered.filter(m => bySlot.has((m.round + 1) + ':' + Math.floor(m.slot / 2))).map(m => {
+              const fromX = (rounds.indexOf(m.round)) * columnWidth + 238;
+              const toX = (rounds.indexOf(m.round + 1)) * columnWidth;
+              const startY = topFor(m.round, m.slot) + cardHeight / 2;
+              const endY = topFor(m.round + 1, Math.floor(m.slot / 2)) + cardHeight / 2;
+              return <path key={m.id} d={`M ${fromX} ${startY} H ${fromX + 28} V ${endY} H ${toX}`}
+                stroke="currentColor" strokeWidth="1.5" className="text-ink-muted/35"/>;
+            })}
+          </svg>
+          {rounds.map((round, index) => <div key={round} className="absolute top-0" style={{ left: index * columnWidth, width: 238 }}>
+            <div className="flex h-[38px] items-baseline justify-between border-b border-line">
+              <h4 className="font-display text-[13px] font-semibold text-ink">{stage(round, finalRound)}</h4>
+              <span className="font-mono text-[10px] text-ink-muted">{String(round).padStart(2, '0')}</span>
+            </div>
+          </div>)}
+          {ordered.map(m => <div key={m.id} className="absolute"
+            style={{ left: rounds.indexOf(m.round) * columnWidth, top: topFor(m.round, m.slot) }}>
+            <MatchCard match={m} active={details?.id === m.id} onSelect={() => setSelected(m.id)}/>
+          </div>)}
+        </div>
+      </div>
+    </div>
+
+    {details && <div className="a-panel grid items-center gap-4 p-5 md:grid-cols-[minmax(0,1fr)_auto]">
+      <div>
+        <p className="a-eyebrow">Selected match / {stage(details.round, finalRound)}</p>
+        <p className="mt-2 font-display text-[18px] font-semibold text-ink">
+          {details.teamA || 'TBD'} <span className="mx-1 text-ink-muted">vs</span> {details.teamB || 'TBD'}
+        </p>
+        <p className="mt-2 text-[12px] text-ink-muted">
+          {humanDate(details.scheduledAt)} · Best of {details.bestOf || '—'} · {statusLabel(details.status)}
+        </p>
+      </div>
+      <div className="flex items-center gap-3">
+        <span className="a-chip" data-tone={details.status === 'live' ? 'live' : 'neutral'}>{statusLabel(details.status)}</span>
+        <span className="a-number text-[21px] text-ink">
+          {details.status === 'completed' || details.status === 'live'
+            ? details.scoreA + ' : ' + details.scoreB : '— : —'}
+        </span>
+      </div>
+    </div>}
+  </section>;
 }
 
 function EventRow({ event, selected, onSelect }: { event:Tournament;selected:boolean;onSelect:()=>void }) {
@@ -116,12 +177,17 @@ function EventRow({ event, selected, onSelect }: { event:Tournament;selected:boo
 export function TournamentsPage() {
   const [listing,setListing]=useState<ListState>({phase:'loading',rows:[]});
   const [filter,setFilter]=useState<Filter>('all');
+  const [search,setSearch]=useState('');
   const [selected,setSelected]=useState<string|null>(null);
   const [detail,setDetail]=useState<DetailState>({phase:'loading',data:null});
   const [lastSync,setLastSync]=useState<number|null>(null);
   const [revision,setRevision]=useState(0);
   const listRequest=useRef(0);
-  const filtered=listing.rows.filter(e=>filter==='all'||e.status===filter);
+  const filtered=useMemo(()=>listing.rows.filter(e=>
+    (filter==='all'||e.status===filter) &&
+    (!search.trim()||(e.name+' '+(e.game||'')+' '+(e.region||''))
+      .toLowerCase().includes(search.trim().toLowerCase()))
+  ),[listing.rows,filter,search]);
   const current=detail.data?.tournament;
   const [openError,setOpenError]=useState(false);
   async function openOfficial(slug:string){
@@ -175,7 +241,8 @@ export function TournamentsPage() {
       description="Explore the official event calendar, inspect full brackets, and follow results published by Aventas."
       action={<button type="button" onClick={()=>setRevision(v=>v+1)} className="a-button">↻ Refresh events</button>}/>
     <div className="flex flex-wrap items-center justify-between gap-3">
-      <WorkspaceTabs items={FILTERS} value={filter} onChange={setFilter} label="Tournament event status"/>
+      <WorkspaceTabs items={FILTERS} value={filter}
+        onChange={next=>{setFilter(next);setSelected(null);}} label="Tournament event status"/>
       <span className="text-[11px] text-ink-muted">
         {lastSync?'Last website check · '+new Date(lastSync).toLocaleTimeString():'Connecting to Aventas website'}
       </span>
@@ -191,6 +258,12 @@ export function TournamentsPage() {
         <div className="flex items-center justify-between gap-3 border-b border-line px-5 py-4">
           <p className="font-display text-[16px] font-semibold text-ink">Event index</p>
           <span className="a-chip">{filtered.length} events</span>
+        </div>
+        <div className="border-b border-line px-4 py-3">
+          <label className="sr-only" htmlFor="event-search">Search official Aventas tournaments</label>
+          <input id="event-search" className="a-input !min-h-[38px] !text-[12px]"
+            type="search" placeholder="Search events, games or regions…"
+            value={search} onChange={event=>{setSearch(event.target.value);setSelected(null);}}/>
         </div>
         {filtered.length?filtered.map(event=><EventRow key={event.slug} event={event}
           selected={selected===event.slug} onSelect={()=>setSelected(event.slug)}/>):
@@ -229,7 +302,7 @@ export function TournamentsPage() {
       <div className="space-y-3">
         <SectionHeading title="Match progression" detail="Brackets and results update from the website, never generated by the desktop app."
           trailing={<span className="text-[11px] text-ink-muted">60 second auto-refresh</span>}/>
-        <OfficialBracket event={detail.data}/>
+        <OfficialBracket bracket={detail.data}/>
       </div>}
     <p className="text-[11px] leading-6 text-ink-muted">
       Tournament registration and staff announcements are managed on the Aventas website.
