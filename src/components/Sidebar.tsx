@@ -22,6 +22,7 @@ const NAV_ICONS: Record<NavId, typeof OverviewIcon> = {
   profile: UserIcon,
   matches: MatchesIcon,
   tournaments: TrophyIcon,
+  utilities: SettingsIcon,
   statistics: StatisticsIcon,
   settings: SettingsIcon,
 };
