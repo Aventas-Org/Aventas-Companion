@@ -57,12 +57,12 @@ export function NotificationCard({
         {icon && <span className={`mt-0.5 shrink-0 ${ICON_TONES[tone]}`}>{icon}</span>}
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-3">
-            <p className="text-[11px] font-semibold uppercase leading-none tracking-[0.05em] text-ink">
+            <p className="text-[11px] font-semibold leading-none text-ink">
               {title}
             </p>
             {statusLabel && (
               <span
-                className={`shrink-0 rounded-md px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.05em] ${PILL_TONES[tone]}`}
+                className={`shrink-0 rounded-md px-2 py-0.5 text-[10px] font-medium ${PILL_TONES[tone]}`}
               >
                 {statusLabel}
               </span>

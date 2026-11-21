@@ -59,25 +59,25 @@ export function StatisticsPage() {
           {/* KDA + ACS grid */}
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
             <div className="rounded-lg border border-line bg-panel p-5">
-              <h3 className="text-sm font-semibold uppercase tracking-wider text-ink-muted">
+              <h3 className="text-sm font-semibold tracking-wider text-ink-muted">
                 Kill / Death / Assist Totals
               </h3>
               <div className="mt-4 grid grid-cols-3 gap-3">
                 <div className="text-center">
                   <p className="text-2xl font-semibold text-emerald-400">{stats.totalKills}</p>
-                  <p className="mt-0.5 text-[10px] font-medium uppercase tracking-wider text-ink-muted">
+                  <p className="mt-0.5 text-[10px] font-medium tracking-wider text-ink-muted">
                     Kills
                   </p>
                 </div>
                 <div className="text-center">
                   <p className="text-2xl font-semibold text-red-400">{stats.totalDeaths}</p>
-                  <p className="mt-0.5 text-[10px] font-medium uppercase tracking-wider text-ink-muted">
+                  <p className="mt-0.5 text-[10px] font-medium tracking-wider text-ink-muted">
                     Deaths
                   </p>
                 </div>
                 <div className="text-center">
                   <p className="text-2xl font-semibold text-ink">{stats.totalAssists}</p>
-                  <p className="mt-0.5 text-[10px] font-medium uppercase tracking-wider text-ink-muted">
+                  <p className="mt-0.5 text-[10px] font-medium tracking-wider text-ink-muted">
                     Assists
                   </p>
                 </div>
@@ -85,7 +85,7 @@ export function StatisticsPage() {
             </div>
 
             <div className="rounded-lg border border-line bg-panel p-5 lg:col-span-2">
-              <h3 className="text-sm font-semibold uppercase tracking-wider text-ink-muted">
+              <h3 className="text-sm font-semibold tracking-wider text-ink-muted">
                 Performance Trend
               </h3>
               <p className="mt-0.5 text-xs text-ink-muted">
@@ -98,7 +98,7 @@ export function StatisticsPage() {
           {/* Wins / Losses breakdown */}
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             <div className="rounded-lg border border-line bg-panel p-5">
-              <h3 className="text-sm font-semibold uppercase tracking-wider text-ink-muted">
+              <h3 className="text-sm font-semibold tracking-wider text-ink-muted">
                 Victories
               </h3>
               <p className="mt-1 text-3xl font-semibold text-emerald-300">{stats.wins}</p>
@@ -107,7 +107,7 @@ export function StatisticsPage() {
               </p>
             </div>
             <div className="rounded-lg border border-line bg-panel p-5">
-              <h3 className="text-sm font-semibold uppercase tracking-wider text-ink-muted">
+              <h3 className="text-sm font-semibold tracking-wider text-ink-muted">
                 Defeats
               </h3>
               <p className="mt-1 text-3xl font-semibold text-red-300">{stats.losses}</p>

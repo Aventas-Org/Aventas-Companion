@@ -1,3 +1,5 @@
+import { RankEmblem, parseRank } from '../components/RankEmblem';
+import { tierColor } from '../services/rankIcons';
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { useAventasAccount } from '../platform/AccountContext';
@@ -55,7 +57,7 @@ function AccountLogin() {
       </div>
     </div>
     <div className="a-panel flex flex-col justify-center p-7 sm:p-9">
-      <p className="page-kicker uppercase tracking-[.13em]">Existing members</p>
+      <p className="page-kicker tracking-[.13em]">Existing members</p>
       <h2 className="mt-3 font-display text-[25px] font-semibold tracking-[-.03em] text-ink">Welcome back.</h2>
       <p className="mt-2 text-[12px] leading-6 text-ink-muted">Use your Aventas website email and password. Discord-only account sign-in requires a later authorization flow.</p>
       <form className="mt-7 space-y-5" onSubmit={event => void submit(event)}>
@@ -158,10 +160,10 @@ function TrackerContent({ tab, data, verified, onTab }: {
     const games=Number(current.games||0);
     return <div className="space-y-5">
       <MetricGrid values={[
-        {label:'RECENT GAMES',value:formatMetric(current.games),hint:'Latest comparison window'},
-        {label:'WIN RATE',value:games?formatMetric(current.winRate,1,'%'):'—',hint:'Current period'},
-        {label:'ACS CHANGE',value:formatMetric(compared.acsDeltaPct,1,'%'),hint:'Versus previous period'},
-        {label:'K/D CHANGE',value:formatMetric(compared.kdDelta,2),hint:'Versus previous period'},
+        {label:'Recent games',value:formatMetric(current.games),hint:'Latest comparison window'},
+        {label:'Win rate',value:games?formatMetric(current.winRate,1,'%'):'—',hint:'Current period'},
+        {label:'ACS change',value:formatMetric(compared.acsDeltaPct,1,'%'),hint:'Versus previous period'},
+        {label:'K/D change',value:formatMetric(compared.kdDelta,2),hint:'Versus previous period'},
       ]}/>
       <EmptyWorkspace kicker="Progress" title="Your improvement, not a guess."
         detail="The website computes comparisons from your own finished matches. Until there are enough samples, comparisons may be unavailable; no synthetic trend line will be shown."/>
@@ -172,7 +174,7 @@ function TrackerContent({ tab, data, verified, onTab }: {
     if(!insights.length)return <EmptyWorkspace kicker="Coaching notes" title="Not enough match evidence."
       detail="Evidence-backed insights will appear after your website has sufficient authorized match and round history. This is not an AI-generated prediction of your performance."/>;
     return <div className="grid gap-4 lg:grid-cols-2">{insights.map((item,i)=><article className="workspace-panel p-6" key={String(item.id||i)}>
-      <p className="page-kicker uppercase">{String(item.category||'Performance insight')}</p>
+      <p className="page-kicker">{String(item.category||'Performance insight')}</p>
       <h3 className="mt-5 font-display text-[19px] font-semibold text-ink">{String(item.title||'Analysis')}</h3>
       <p className="mt-3 text-[12px] leading-6 text-ink-muted">{String(item.body||'')}</p>
       {item.stat!=null&&<div className="mt-5 border-t border-line pt-4 font-mono text-[13px] text-accent">{String(item.stat)}</div>}
@@ -180,20 +182,27 @@ function TrackerContent({ tab, data, verified, onTab }: {
   }
   const stats=asRecord(data.statistics),rank=asRecord(asRecord(data.rank).current);
   const games=Number(stats.games||0);
+  const rankLabel=verified&&games&&rank.tier?String(rank.tier):'';
   return <div className="space-y-6">
+    {rankLabel&&<div className="a-panel flex items-center gap-4 p-5">
+      <RankEmblem label={rankLabel} size={64}/>
+      <div><p className="text-sm text-ink-muted">Current rank</p>
+        <p className="figure text-3xl font-semibold" style={{color:tierColor(parseRank(rankLabel)?.tier??'')}}>{rankLabel}</p>
+        <p className="figure text-sm text-ink-muted">{formatMetric(rank.rr,0,' RR')}</p></div>
+    </div>}
     <MetricGrid values={[
-      {label:'MATCHES RECORDED',value:formatMetric(stats.games),hint:'Website history'},
-      {label:'WIN RATE',value:games?formatMetric(stats.winRate,1,'%'):'—',hint:'Recorded matches only',tone:'positive'},
-      {label:'K/D RATIO',value:games?formatMetric(stats.kd,2):'—',hint:'Kills per death'},
-      {label:'AVERAGE ACS',value:games?formatMetric(stats.acs):'—',hint:'Combat score'},
-      {label:'HEADSHOT RATE',value:games?formatMetric(stats.headshotPercent,1,'%'):'—',hint:'Verified results'},
-      {label:'AVERAGE ADR',value:games?formatMetric(stats.adr):'—',hint:'Damage per round'},
-      {label:'CURRENT RANK',value:verified&&games?String(rank.tier||'—'):'—',hint:verified?'Website-linked Riot data':'Riot link pending',tone:'accent'},
-      {label:'RANK RATING',value:verified&&games?formatMetric(rank.rr,0,' RR'):'—',hint:'Official server record'},
+      {label:'Matches recorded',value:formatMetric(stats.games),hint:'Website history'},
+      {label:'Win rate',value:games?formatMetric(stats.winRate,1,'%'):'—',hint:'Recorded matches only',tone:'positive'},
+      {label:'K/D ratio',value:games?formatMetric(stats.kd,2):'—',hint:'Kills per death'},
+      {label:'Average acs',value:games?formatMetric(stats.acs):'—',hint:'Combat score'},
+      {label:'Headshot rate',value:games?formatMetric(stats.headshotPercent,1,'%'):'—',hint:'Verified results'},
+      {label:'Average adr',value:games?formatMetric(stats.adr):'—',hint:'Damage per round'},
+      {label:'Current rank',value:verified&&games?String(rank.tier||'—'):'—',hint:verified?'Website-linked Riot data':'Riot link pending',tone:'accent'},
+      {label:'Rank rating',value:verified&&games?formatMetric(rank.rr,0,' RR'):'—',hint:'Official server record'},
     ]}/>
     <div className="space-y-3">
       <SectionHeading title="Latest performances" detail="Recent match records returned by the authenticated website."
-        trailing={<button type="button" onClick={()=>onTab('matches')} className="workspace-link">Open full archive ↗</button>}/>
+        trailing={<button type="button" onClick={()=>onTab('matches')} className="workspace-link">Open full archive</button>}/>
       <MatchList matches={asArray<Game>(data.recentMatches).slice(0,10)}/>
     </div>
   </div>;
@@ -252,7 +261,7 @@ export function LiveTrackerPage() {
         <div className="flex items-center gap-5">
           <span className="workspace-avatar !size-[68px] !rounded-[12px] !text-[27px]">{String(player.riotId||account?.name||'A').slice(0,1).toUpperCase()}</span>
           <div>
-            <p className="page-kicker uppercase">Your Aventas profile</p>
+            <p className="page-kicker">Your Aventas profile</p>
             <h2 className="mt-1 font-display text-[25px] font-semibold tracking-[-.035em] text-ink">
               {String(player.riotId||account?.name||'Player')}
               {meta.hasRiotLink===true&&<span className="text-ink-muted">#{String(player.tagline||'')}</span>}

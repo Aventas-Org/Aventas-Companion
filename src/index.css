@@ -12,12 +12,12 @@
  * them on <html> when the user picks another preset.
  */
 :root {
-  --color-app: 12 12 14;
-  --color-panel: 20 28 40;
-  --color-line: 40 49 64;
-  --color-ink: 255 255 255;
-  --color-ink-muted: 140 147 158;
-  --color-accent: 253 186 116;
+  --color-app: 21 23 28;
+  --color-panel: 29 32 39;
+  --color-line: 50 55 67;
+  --color-ink: 233 236 241;
+  --color-ink-muted: 149 156 170;
+  --color-accent: 233 236 241;
   --color-signal: 196 57 47;
   --app-background: none;
 }
@@ -87,11 +87,11 @@ body {
  * Fonts are Windows-native; there are no network font requests. */
 :root {
   /* Same type as the website tracker; bundled via @fontsource, no network requests. */
-  --font-ui: 'Inter', 'Segoe UI', system-ui, sans-serif;
-  --font-display: 'Inter', 'Segoe UI', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, Consolas, monospace;
+  --font-ui: 'Barlow', 'Segoe UI', system-ui, sans-serif;
+  --font-display: 'Barlow Condensed', 'Barlow', 'Segoe UI', sans-serif;
+  --font-mono: 'Barlow Condensed', 'Barlow', sans-serif;
 }
-body { font-family: var(--font-ui); font-size: 14px; -webkit-font-smoothing: antialiased; }
+body { font-family: var(--font-ui); font-size: 15px; -webkit-font-smoothing: antialiased; }
 h1, h2, h3, h4, .display-type { font-family: var(--font-display); }
 button, input, select, textarea { font: inherit; }
 button { -webkit-tap-highlight-color: transparent; }
@@ -115,14 +115,9 @@ button { -webkit-tap-highlight-color: transparent; }
   }
   .app-main-inner { max-width: 1500px; margin-inline: auto; }
   .page-stage { padding: 30px clamp(20px, 3.2vw, 52px) 64px; max-width: 1560px; margin-inline: auto; }
-  .page-kicker, .a-eyebrow { color: rgb(var(--color-ink-muted)); font-size: 11px; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; }
-  /* Website eyebrow language: a small red tick before every section label. */
-  .page-kicker::before, .a-eyebrow::before {
-    content: ""; display: inline-block; width: .85rem; height: 2px; margin-right: .5rem;
-    vertical-align: .18em; background: rgb(var(--color-signal, 196 57 47));
-    transition: width .45s cubic-bezier(.16,1,.3,1);
-  }
-  .group:hover .a-eyebrow::before { width: 1.4rem; }
+  .page-kicker, .a-eyebrow { color: rgb(var(--color-ink-muted)); font-size: 13px; font-weight: 500; }
+  .figure { font-family: var(--font-display); font-variant-numeric: tabular-nums; }
+
   .page-heading { font-family: var(--font-display); font-weight: 660; letter-spacing: -.035em; line-height: 1.06; font-size: clamp(31px, 3.3vw, 48px); color: rgb(var(--color-ink)); }
   .page-description { font-size: 13px; line-height: 1.7; color: rgb(var(--color-ink-muted)); max-width: 650px; }
   .a-panel {

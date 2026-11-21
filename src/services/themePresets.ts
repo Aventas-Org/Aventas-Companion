@@ -66,14 +66,14 @@ export interface ThemePreset {
 
 /** Harks back to the original charcoal-and-red build. */
 const DARK: ThemePalette = {
-  // Matches the website tracker (/tracker): near-black canvas, navy panels,
-  // white ink and the orange active state, so web and desktop read as one product.
-  app: '#0C0C0E',
-  panel: '#141C28',
-  line: '#283140',
-  ink: '#FFFFFF',
-  inkMuted: '#8C939E',
-  accent: '#FDBA74',
+  // Matches the website tracker (/tracker): graphite planes, light ink and a
+  // neutral accent; the player's rank colour supplies the only hue, so web and desktop read as one product.
+  app: '#15171C',
+  panel: '#1D2027',
+  line: '#323743',
+  ink: '#E9ECF1',
+  inkMuted: '#959CAA',
+  accent: '#E9ECF1',
   background: 'none',
   scheme: 'dark',
 };

@@ -41,7 +41,7 @@ function ResultBadge({ result }: { result: MatchResult }) {
 function StatRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between border-b border-line py-2 last:border-b-0 last:py-0">
-      <span className="text-xs font-medium uppercase tracking-wider text-ink-muted">{label}</span>
+      <span className="text-xs font-medium tracking-wider text-ink-muted">{label}</span>
       <span className="text-sm text-ink">{value}</span>
     </div>
   );
@@ -88,15 +88,15 @@ export function MatchDetailPanel({ match, onClose }: MatchDetailPanelProps) {
       <div className="mt-4 grid grid-cols-3 gap-2 rounded-lg bg-app p-3">
         <div className="text-center">
           <p className="text-lg font-semibold text-emerald-400">{match.kills}</p>
-          <p className="text-[10px] font-medium uppercase tracking-wider text-ink-muted">Kills</p>
+          <p className="text-[10px] font-medium tracking-wider text-ink-muted">Kills</p>
         </div>
         <div className="text-center">
           <p className="text-lg font-semibold text-red-400">{match.deaths}</p>
-          <p className="text-[10px] font-medium uppercase tracking-wider text-ink-muted">Deaths</p>
+          <p className="text-[10px] font-medium tracking-wider text-ink-muted">Deaths</p>
         </div>
         <div className="text-center">
           <p className="text-lg font-semibold text-ink">{match.assists}</p>
-          <p className="text-[10px] font-medium uppercase tracking-wider text-ink-muted">Assists</p>
+          <p className="text-[10px] font-medium tracking-wider text-ink-muted">Assists</p>
         </div>
       </div>
 

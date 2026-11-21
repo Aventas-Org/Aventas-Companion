@@ -4,9 +4,9 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Inter', 'Segoe UI', 'system-ui', 'sans-serif'],
-        display: ['Inter', 'Segoe UI', 'system-ui', 'sans-serif'],
-        mono: ['JetBrains Mono', 'ui-monospace', 'Consolas', 'monospace'],
+        sans: ['Barlow', 'Segoe UI', 'system-ui', 'sans-serif'],
+        display: ['Barlow Condensed', 'Barlow', 'sans-serif'],
+        mono: ['Barlow Condensed', 'Barlow', 'sans-serif'],
       },
       /**
        * Aventas palette: layered surfaces with a single accent.

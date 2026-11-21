@@ -11,7 +11,7 @@ export function BrandLogo({ collapsed = false }: BrandLogoProps) {
     </div>
     {!collapsed && <div className="hidden min-w-0 flex-col xl:flex">
       <span className="font-display text-[16px] font-semibold leading-none tracking-[-0.035em] text-ink">AVENTAS</span>
-      <span className="mt-1 text-[10px] font-medium tracking-[0.03em] text-ink-muted">Companion / Windows</span>
+      <span className="mt-1 text-[10px] font-medium text-ink-muted">Companion / Windows</span>
     </div>}
   </div>;
 }

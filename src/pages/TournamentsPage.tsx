@@ -165,7 +165,7 @@ function EventRow({ event, selected, onSelect }: { event:Tournament;selected:boo
       <span className="block font-mono text-[12px] font-semibold text-ink">{typeof count==='number'?count:'—'}</span>
       <span className="text-[10px] text-ink-muted">Teams</span>
     </span>
-    <span className={'rounded-[5px] border px-2 py-1 text-[10px] font-semibold uppercase tracking-[.03em] '+
+    <span className={'rounded-[5px] border px-2 py-1 text-[10px] font-semibold tracking-[.03em] '+
       (event.status==='live'?'border-emerald-400/30 bg-emerald-400/5 text-emerald-400':
         event.status==='completed'?'border-line text-ink-muted':'border-accent/25 bg-accent/5 text-accent')}>
       {event.status}
@@ -271,7 +271,7 @@ export function TournamentsPage() {
       </section>
       <div className="a-panel-soft flex min-h-[220px] flex-col justify-center p-6">
         {!selected?<div>
-          <p className="page-kicker uppercase">Event details</p>
+          <p className="page-kicker">Event details</p>
           <h2 className="mt-4 font-display text-[24px] font-semibold text-ink">Select a tournament.</h2>
           <p className="mt-3 max-w-[380px] text-[12px] leading-6 text-ink-muted">
             View the official match tree and any approved scores. Registration stays on the website.
@@ -291,7 +291,7 @@ export function TournamentsPage() {
             </div>
             {current?.champion&&<p className="text-[12px] font-semibold text-emerald-400">Champion · {current.champion}</p>}
             <button type="button" className="a-button a-button-primary w-fit"
-              onClick={()=>void openOfficial(selected)}>Registration & event details ↗</button>
+              onClick={()=>void openOfficial(selected)}>Registration & event details</button>
             {openError&&<p role="alert" className="text-[11px] text-amber-300">
               The system browser could not be opened. Visit aventasgaming.com to register.
             </p>}

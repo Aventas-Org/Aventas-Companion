@@ -114,17 +114,17 @@ export function ProfilePage() {
           </div>
           <dl className="mt-3 flex flex-col gap-2">
             <div className="flex items-baseline justify-between gap-4">
-              <dt className="text-[11px] uppercase tracking-[0.05em] text-ink-muted">Riot ID</dt>
+              <dt className="text-[11px] text-ink-muted">Riot ID</dt>
               <dd className="text-sm text-ink">
                 {saved.riotIdName}#{saved.riotIdTagline}
               </dd>
             </div>
             <div className="flex items-baseline justify-between gap-4">
-              <dt className="text-[11px] uppercase tracking-[0.05em] text-ink-muted">Region</dt>
+              <dt className="text-[11px] text-ink-muted">Region</dt>
               <dd className="text-sm text-ink">{getRegionLabel(saved.region)}</dd>
             </div>
             <div className="flex items-baseline justify-between gap-4">
-              <dt className="text-[11px] uppercase tracking-[0.05em] text-ink-muted">Status</dt>
+              <dt className="text-[11px] text-ink-muted">Status</dt>
               <dd className="text-sm text-ink">Local only — not verified</dd>
             </div>
           </dl>

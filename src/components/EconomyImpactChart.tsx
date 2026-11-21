@@ -56,19 +56,19 @@ export function EconomyImpactChart({ economy }: EconomyImpactChartProps) {
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <div className="rounded-lg border border-line bg-panel p-3">
-          <p className="text-[10px] font-medium uppercase tracking-wider text-ink-muted">
+          <p className="text-[10px] font-medium tracking-wider text-ink-muted">
             Over-buys on eco
           </p>
           <p className="mt-1 text-xl font-semibold text-amber-300">{economy.overbuyCount}</p>
         </div>
         <div className="rounded-lg border border-line bg-panel p-3">
-          <p className="text-[10px] font-medium uppercase tracking-wider text-ink-muted">
+          <p className="text-[10px] font-medium tracking-wider text-ink-muted">
             Under-buys on full
           </p>
           <p className="mt-1 text-xl font-semibold text-red-300">{economy.underbuyCount}</p>
         </div>
         <div className="rounded-lg border border-line bg-panel p-3">
-          <p className="text-[10px] font-medium uppercase tracking-wider text-ink-muted">
+          <p className="text-[10px] font-medium tracking-wider text-ink-muted">
             Credits burned
           </p>
           <p className="mt-1 text-xl font-semibold text-ink">
@@ -79,7 +79,7 @@ export function EconomyImpactChart({ economy }: EconomyImpactChartProps) {
 
       {economy.flags.length > 0 && (
         <div>
-          <p className="text-[10px] font-medium uppercase tracking-wider text-ink-muted">
+          <p className="text-[10px] font-medium tracking-wider text-ink-muted">
             Flagged rounds
           </p>
           <ul className="mt-2 flex flex-col gap-2">
@@ -90,7 +90,7 @@ export function EconomyImpactChart({ economy }: EconomyImpactChartProps) {
               >
                 <span
                   className={[
-                    'mt-0.5 shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider',
+                    'mt-0.5 shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold tracking-wider',
                     flag.kind === 'overbuy'
                       ? 'bg-amber-500/15 text-amber-300'
                       : 'bg-red-500/15 text-red-300',

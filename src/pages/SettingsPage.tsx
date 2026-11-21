@@ -1,3 +1,4 @@
+import { RIOT_ASSET_NOTICE } from '../services/rankIcons';
 import { useState } from 'react';
 import { SectionCard } from '../components/SectionCard';
 import { AccountPrivacy } from '../components/AccountPrivacy';
@@ -38,7 +39,7 @@ function Swatch({ color, label }: { color: string; label: string }) {
         style={{ backgroundColor: color }}
         aria-hidden="true"
       />
-      <span className="text-[10px] uppercase tracking-wider text-ink-muted">{label}</span>
+      <span className="text-[10px] tracking-wider text-ink-muted">{label}</span>
     </div>
   );
 }
@@ -243,6 +244,7 @@ export function SettingsPage() {
           </SectionCard>
         </div>
       </div>
+      <p className="mt-10 max-w-2xl text-xs leading-relaxed text-ink-muted">{RIOT_ASSET_NOTICE}</p>
     </div>
   );
 }

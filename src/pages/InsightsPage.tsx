@@ -46,7 +46,7 @@ export function InsightsPage() {
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className="rounded-lg border border-line bg-panel p-4">
-          <p className="text-xs font-medium uppercase tracking-wider text-ink-muted">Record</p>
+          <p className="text-xs font-medium tracking-wider text-ink-muted">Record</p>
           <p className="mt-2 text-2xl font-semibold text-ink">
             {view.record.wins}
             <span className="text-ink-muted">W</span> {view.record.losses}
@@ -57,7 +57,7 @@ export function InsightsPage() {
           </p>
         </div>
         <div className="rounded-lg border border-line bg-panel p-4">
-          <p className="text-xs font-medium uppercase tracking-wider text-ink-muted">
+          <p className="text-xs font-medium tracking-wider text-ink-muted">
             Rounds analysed
           </p>
           <p className="mt-2 text-2xl font-semibold text-accent">{view.rounds.length}</p>
@@ -66,7 +66,7 @@ export function InsightsPage() {
           </p>
         </div>
         <div className="rounded-lg border border-line bg-panel p-4">
-          <p className="text-xs font-medium uppercase tracking-wider text-ink-muted">
+          <p className="text-xs font-medium tracking-wider text-ink-muted">
             Top focus right now
           </p>
           <p className="mt-2 text-sm font-semibold leading-snug text-amber-300">

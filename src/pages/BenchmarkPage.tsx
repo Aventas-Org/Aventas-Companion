@@ -49,7 +49,7 @@ export function BenchmarkPage() {
         <div className="flex flex-col gap-4">
           <div className="flex flex-wrap items-center gap-3">
             <span className="rounded-lg border border-line bg-panel px-3 py-2">
-              <span className="block text-[10px] uppercase tracking-wider text-ink-muted">
+              <span className="block text-[10px] tracking-wider text-ink-muted">
                 Current rank
               </span>
               <span className="text-sm font-semibold text-ink">{session.player.currentRank}</span>
@@ -58,7 +58,7 @@ export function BenchmarkPage() {
               →
             </span>
             <span className="rounded-lg border border-accent/40 bg-accent/[0.06] px-3 py-2">
-              <span className="block text-[10px] uppercase tracking-wider text-ink-muted">
+              <span className="block text-[10px] tracking-wider text-ink-muted">
                 Target rank
               </span>
               <span className="text-sm font-semibold text-ink">{session.player.targetRank}</span>

@@ -35,7 +35,7 @@ function Gauge({ title, value, detail, meter, history, kind }: {
 }) {
   return <div className="workspace-panel p-6">
     <div className="flex items-center justify-between">
-      <p className="a-eyebrow uppercase">{title}</p>
+      <p className="a-eyebrow">{title}</p>
       <span className="size-1.5 rounded-full bg-accent/70" aria-hidden="true"/>
     </div>
     <p className="a-number mt-5 text-[42px] leading-none text-ink">{value}</p>
@@ -136,7 +136,7 @@ export function GamingUtilitiesPage() {
           history={history} kind="memory"
           detail={metrics?gib(metrics.usedMemoryBytes)+' used / '+gib(metrics.totalMemoryBytes)+' installed':'Waiting for RAM totals from Windows.'}/>
         <div className="workspace-panel p-6">
-          <p className="a-eyebrow uppercase">Observed game runtime</p>
+          <p className="a-eyebrow">Observed game runtime</p>
           <p className="a-number mt-5 text-[40px] leading-none text-ink">{elapsed(running?seconds:0)}</p>
           <p className="mt-5 text-[11px] leading-6 text-ink-muted">
             This counter starts when the game is detected while this screen is open. It resets on close;

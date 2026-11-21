@@ -22,7 +22,7 @@ function pct(value: number | null): string {
 function StatRow({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
     <div className="flex items-baseline justify-between gap-3">
-      <span className="text-[11px] uppercase tracking-wider text-ink-muted">{label}</span>
+      <span className="text-[11px] tracking-wider text-ink-muted">{label}</span>
       <span className="text-right">
         <span className="text-sm font-semibold text-ink">{value}</span>
         {hint && <span className="ml-1.5 text-[11px] text-ink-muted">{hint}</span>}
@@ -72,7 +72,7 @@ export function OverlayPage() {
 
         {focus && (
           <div className="mt-3 rounded-lg border border-line bg-panel p-2.5">
-            <p className="text-[10px] uppercase tracking-wider text-ink-muted">
+            <p className="text-[10px] tracking-wider text-ink-muted">
               Focus before next queue
             </p>
             <p className="mt-1 text-xs font-medium leading-snug text-amber-200">{focus.title}</p>

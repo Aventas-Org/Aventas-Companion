@@ -117,7 +117,7 @@ export function PlayerDirectoryPage(){
               <div className="flex items-center gap-4">
                 <span className="workspace-avatar !size-14 !text-[24px]">{active.riotId.slice(0,1).toUpperCase()}</span>
                 <div>
-                  <p className="page-kicker uppercase">Verified public listing</p>
+                  <p className="page-kicker">Verified public listing</p>
                   <h2 className="mt-1 font-display text-[23px] font-semibold tracking-[-.035em] text-ink">{active.riotId}<span className="text-ink-muted">#{active.tagline}</span></h2>
                   <p className="mt-1 text-[11px] text-ink-muted">{active.region||'Region unknown'} · Account level {formatMetric(active.accountLevel)}</p>
                 </div>

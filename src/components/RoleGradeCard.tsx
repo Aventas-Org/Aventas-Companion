@@ -28,7 +28,7 @@ export function RoleGradeCard({ grade, primary = false }: RoleGradeCardProps) {
           <div className="flex items-center gap-2">
             <h4 className="text-base font-semibold text-ink">{grade.role}</h4>
             {primary && (
-              <span className="rounded-full bg-accent/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-ink">
+              <span className="rounded-full bg-accent/15 px-2 py-0.5 text-[10px] font-semibold tracking-wider text-ink">
                 Your role
               </span>
             )}
@@ -41,7 +41,7 @@ export function RoleGradeCard({ grade, primary = false }: RoleGradeCardProps) {
           <p className={`text-3xl font-bold leading-none ${gradeColor(grade.score)}`}>
             {grade.grade}
           </p>
-          <p className="mt-1 text-[10px] uppercase tracking-wider text-ink-muted">
+          <p className="mt-1 text-[10px] tracking-wider text-ink-muted">
             {Math.round(grade.score)}/100
           </p>
         </div>

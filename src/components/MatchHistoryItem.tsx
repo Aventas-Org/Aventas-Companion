@@ -29,11 +29,11 @@ function ResultLabel({ result }: { result: MatchResult }) {
   return <>{result === 'victory' ? 'Victory' : 'Defeat'}</>;
 }
 
-function StatCell({ label, value, tone, wide }: { label: string; value: string; tone?: string; wide?: boolean }) {
+function StatCell({ label, value }: { label: string; value: string }) {
   return (
-    <div className={'text-center ' + (wide ? 'w-28' : 'w-12')}>
-      <dt className="text-[10px] uppercase tracking-[0.14em] text-white/35">{label}</dt>
-      <dd className={'mt-0.5 whitespace-nowrap font-mono text-sm font-medium ' + (tone ?? 'text-white/85')}>{value}</dd>
+    <div className="hidden xl:block">
+      <p className="figure text-base text-ink">{value}</p>
+      <p className="text-xs text-ink-muted">{label}</p>
     </div>
   );
 }
@@ -58,12 +58,11 @@ export function MatchHistoryItem({ matches, selectedId, onSelect }: MatchHistory
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-1.5">
       {matches.map((match) => {
         const isSelected = match.id === selectedId;
         const win = match.result === 'victory';
         const [won, lost] = match.score.split(/\s*[-–:]\s*/);
-        const kd = match.kills / Math.max(match.deaths, 1);
         return (
           <button
             key={match.id}
@@ -71,42 +70,22 @@ export function MatchHistoryItem({ matches, selectedId, onSelect }: MatchHistory
             onClick={() => onSelect(match)}
             aria-pressed={isSelected}
             className={[
-              'group relative flex w-full items-center gap-4 overflow-hidden rounded-lg border py-3 pl-5 pr-4 text-left transition-colors',
-              'focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40',
-              win
-                ? 'border-emerald-400/[0.12] bg-gradient-to-r from-emerald-400/[0.07] via-white/[0.02] to-white/[0.02] hover:border-emerald-400/30'
-                : 'border-rose-400/[0.12] bg-gradient-to-r from-rose-400/[0.07] via-white/[0.02] to-white/[0.02] hover:border-rose-400/30',
-              isSelected ? 'ring-1 ring-accent/50' : '',
+              'relative grid w-full grid-cols-[1fr_auto] items-center gap-x-6 rounded-md py-3 pl-5 pr-4 text-left transition-colors duration-150',
+              'focus:outline-none focus-visible:ring-2 focus-visible:ring-ink/50 xl:grid-cols-[minmax(9rem,1.4fr)_4rem_repeat(3,minmax(3.5rem,1fr))]',
+              isSelected ? 'bg-[#262A33]' : 'bg-panel hover:bg-[#262A33]',
             ].join(' ')}
           >
-            <span aria-hidden="true" className={'absolute inset-y-0 left-0 w-1 ' + (win ? 'bg-emerald-400' : 'bg-rose-400')}/>
-            <span aria-hidden="true" className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-white/10 bg-black/30 font-mono text-xs font-semibold text-white/80">
-              {(match.agent ?? match.map).slice(0, 2).toUpperCase()}
-            </span>
-            <div className="w-40 min-w-0 shrink-0">
-              <p className="truncate text-sm font-semibold text-ink">{match.map}</p>
-              <p className="truncate text-xs text-ink-muted">
-                {match.agent ? match.agent + ' · ' : ''}<span className="uppercase tracking-[0.14em] text-[10px]">{match.mode ?? 'Match'}</span>
-              </p>
+            <span aria-hidden="true" className={'absolute inset-y-2 left-0 w-[3px] rounded-r ' + (win ? 'bg-[#3FB68B]' : 'bg-[#E5646E]')}/>
+            <div className="min-w-0">
+              <p className="truncate font-medium text-ink">{match.map}</p>
+              <p className="truncate text-sm text-ink-muted">{[match.agent, match.mode].filter(Boolean).join(', ')}</p>
             </div>
-            <div className="w-16 shrink-0 whitespace-nowrap text-center">
-              <p className={'font-mono text-base font-semibold ' + (win ? 'text-emerald-300' : 'text-rose-300')}>
-                {won}<span className="text-white/30">:</span>{lost}
-              </p>
-              <p className="text-[10px] uppercase tracking-[0.14em] text-white/35"><ResultLabel result={match.result}/></p>
-            </div>
-            <dl className="ml-auto hidden items-center gap-5 xl:flex">
-              <StatCell label="K / D / A" value={`${match.kills} / ${match.deaths} / ${match.assists}`} wide/>
-              <StatCell label="K/D" value={kdRatio(match.kills, match.deaths)} tone={kd >= 1 ? 'text-emerald-300' : 'text-rose-300'}/>
-              <StatCell label="ACS" value={match.acs != null ? String(match.acs) : '—'}/>
-            </dl>
-            <div className="ml-auto hidden w-24 shrink-0 text-right 2xl:block xl:ml-4">
-              <p className="text-xs text-ink-muted">{formatDate(match.date)}</p>
-            </div>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-              className={`shrink-0 transition-transform ${isSelected ? 'rotate-90 text-accent' : 'text-white/25 group-hover:text-white/60'}`} aria-hidden="true">
-              <path d="M9 18l6-6-6-6" />
-            </svg>
+            <p className={'figure text-xl font-semibold ' + (win ? 'text-[#3FB68B]' : 'text-[#E5646E]')}>
+              {won}–{lost}<span className="sr-only">{win ? ' win' : ' loss'}</span>
+            </p>
+            <StatCell label="K / D / A" value={`${match.kills} / ${match.deaths} / ${match.assists}`}/>
+            <StatCell label="K/D" value={kdRatio(match.kills, match.deaths)}/>
+            <StatCell label="ACS" value={match.acs != null ? String(match.acs) : '–'}/>
           </button>
         );
       })}

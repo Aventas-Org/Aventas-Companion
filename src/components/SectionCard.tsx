@@ -15,7 +15,7 @@ export function SectionCard({ title, subtitle, action, children, className }: Se
     <section className={['rounded-lg border border-line bg-panel p-5', className ?? ''].join(' ')}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h3 className="text-sm font-semibold uppercase tracking-wider text-ink-muted">{title}</h3>
+          <h3 className="text-sm font-semibold tracking-wider text-ink-muted">{title}</h3>
           {subtitle && <p className="mt-0.5 text-xs text-ink-muted">{subtitle}</p>}
         </div>
         {action}
