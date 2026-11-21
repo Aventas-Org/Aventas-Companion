@@ -72,15 +72,15 @@ export function MatchHistoryItem({ matches, selectedId, onSelect }: MatchHistory
             className={[
               'relative grid w-full grid-cols-[1fr_auto] items-center gap-x-6 rounded-md py-3 pl-5 pr-4 text-left transition-colors duration-150',
               'focus:outline-none focus-visible:ring-2 focus-visible:ring-ink/50 xl:grid-cols-[minmax(9rem,1.4fr)_4rem_repeat(3,minmax(3.5rem,1fr))]',
-              isSelected ? 'bg-[#262A33]' : 'bg-panel hover:bg-[#262A33]',
+              isSelected ? 'bg-line/60' : 'bg-panel hover:bg-line/60',
             ].join(' ')}
           >
-            <span aria-hidden="true" className={'absolute inset-y-2 left-0 w-[3px] rounded-r ' + (win ? 'bg-[#3FB68B]' : 'bg-[#E5646E]')}/>
+            <span aria-hidden="true" className={'absolute inset-y-2 left-0 w-[3px] rounded-r ' + (win ? 'bg-[#5BB98C]' : 'bg-[#D9534A]')}/>
             <div className="min-w-0">
               <p className="truncate font-medium text-ink">{match.map}</p>
               <p className="truncate text-sm text-ink-muted">{[match.agent, match.mode].filter(Boolean).join(', ')}</p>
             </div>
-            <p className={'figure text-xl font-semibold ' + (win ? 'text-[#3FB68B]' : 'text-[#E5646E]')}>
+            <p className={'figure text-xl font-semibold ' + (win ? 'text-[#5BB98C]' : 'text-[#D9534A]')}>
               {won}–{lost}<span className="sr-only">{win ? ' win' : ' loss'}</span>
             </p>
             <StatCell label="K / D / A" value={`${match.kills} / ${match.deaths} / ${match.assists}`}/>

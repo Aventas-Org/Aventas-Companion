@@ -68,12 +68,12 @@ export interface ThemePreset {
 const DARK: ThemePalette = {
   // Matches the website tracker (/tracker): graphite planes, light ink and a
   // neutral accent; the player's rank colour supplies the only hue, so web and desktop read as one product.
-  app: '#15171C',
-  panel: '#1D2027',
-  line: '#323743',
-  ink: '#E9ECF1',
-  inkMuted: '#959CAA',
-  accent: '#E9ECF1',
+  app: '#0B0B0B',
+  panel: '#141414',
+  line: '#2C2C2A',
+  ink: '#F1F1EE',
+  inkMuted: '#8A8A86',
+  accent: '#F1F1EE',
   background: 'none',
   scheme: 'dark',
 };

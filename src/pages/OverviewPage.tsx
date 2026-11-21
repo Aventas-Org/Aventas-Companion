@@ -1,3 +1,4 @@
+import { SessionTape, type TapeMatch } from '../components/SessionTape';
 import { useEffect, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { useAventasAccount } from '../platform/AccountContext';
@@ -54,6 +55,15 @@ function ActionLink({ label, onClick, primary = false }: { label: string; onClic
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="15" height="15" aria-hidden="true"><path d="M4 12h16m-7-7 7 7-7 7"/></svg>
   </button>;
 }
+
+const T0 = Date.UTC(2026, 10, 21, 18, 0);
+const SAMPLE_TAPE: TapeMatch[] = [
+  { id: 's1', map: 'Ascent', agent: 'Jett', won: 13, lost: 9, rr: 21, kills: 24, deaths: 14, assists: 6, acs: 268, playedAt: T0 },
+  { id: 's2', map: 'Icebox', agent: 'Jett', won: 11, lost: 13, rr: -16, kills: 17, deaths: 18, assists: 4, acs: 221, playedAt: T0 + 1 },
+  { id: 's3', map: 'Lotus', agent: 'Omen', won: 13, lost: 7, rr: 24, kills: 19, deaths: 11, assists: 9, acs: 247, playedAt: T0 + 2 },
+  { id: 's4', map: 'Bind', agent: 'Raze', won: 13, lost: 11, rr: 18, kills: 22, deaths: 16, assists: 5, acs: 255, playedAt: T0 + 3 },
+  { id: 's5', map: 'Sunset', agent: 'Jett', won: 13, lost: 10, rr: 20, kills: 26, deaths: 15, assists: 3, acs: 291, playedAt: T0 + 4 },
+];
 
 export function OverviewPage({ onNavigate }: { onNavigate?: (id: NavId) => void }) {
   const status = useValorantStatus();
@@ -126,43 +136,39 @@ export function OverviewPage({ onNavigate }: { onNavigate?: (id: NavId) => void 
     checking ? 'Checking for VALORANT' : running ? 'VALORANT process running' :
     'VALORANT is not running';
 
+  // Tonight's tape: verified website matches from the last 12 hours, or a
+  // clearly labelled sample when no account data is available yet.
+  const liveTape: TapeMatch[] = (Array.isArray(dashboard?.recentMatches) && !isDemo ? dashboard.recentMatches.map(record) : [])
+    .map((m, i) => {
+      const [won, lost] = String(m.score ?? '').split(/\s*[-–:]\s*/).map(Number);
+      return { id: String(m.id ?? i), map: String(m.map ?? 'Unknown'), agent: m.agent ? String(m.agent) : undefined,
+        won: Number.isFinite(won) ? won : (m.result === 'win' ? 13 : 0), lost: Number.isFinite(lost) ? lost : (m.result === 'win' ? 0 : 13),
+        rr: typeof m.rrChange === 'number' ? m.rrChange : undefined,
+        kills: m.kills as number | undefined, deaths: m.deaths as number | undefined, assists: m.assists as number | undefined,
+        acs: m.acs as number | undefined, playedAt: Number(m.playedAt ?? 0) };
+    })
+    .filter(m => m.playedAt > Date.now() - 12 * 3600_000);
+  const rankCurrent = record(record(dashboard?.rank).current);
+  const showSample = !hasResults;
+  const tape = showSample ? SAMPLE_TAPE : liveTape;
+
   return <div className="page-stage space-y-7">
-    <div className="flex flex-wrap items-end justify-between gap-3">
-      <div>
-        <p className="page-kicker">Aventas / Home</p>
-        <h1 className="page-heading mt-2">Your competitive desk.</h1>
-        <p className="page-description mt-3">Match history, tournaments and PC health — where you need them.</p>
+    <div className="flex flex-wrap items-center justify-between gap-3">
+      <p className="flex items-center gap-2 text-[13px] text-ink-muted">
+        <span className={'a-status-dot ' + (running ? 'text-emerald-400' : 'text-ink-muted')}/>
+        {processLabel}
+        <span className="text-ink-muted/60">(read-only process check, no game memory access)</span>
+      </p>
+      <div className="flex gap-2">
+        <ActionLink primary label="Open Live Tracker" onClick={() => onNavigate?.('live')}/>
+        <button type="button" className="a-button" onClick={() => setRevision(value => value + 1)}>Refresh</button>
       </div>
-      <button type="button" className="a-button !py-2.5" onClick={() => setRevision(value => value + 1)}>
-        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="M20 6v5h-5M4 18v-5h5"/><path d="M5.5 10a7.5 7.5 0 0 1 12.8-3M18.5 14a7.5 7.5 0 0 1-12.8 3"/></svg>
-        Refresh dashboard
-      </button>
     </div>
 
-    <section className="a-hero grid min-h-[310px] items-center gap-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(240px,.8fr)]">
-      <div className="p-7 sm:p-9 lg:p-11">
-        <span className="a-chip" data-tone={running ? 'live' : 'accent'}>
-          <span className="a-status-dot" />
-          {running ? 'Local session detected' : status.phase === 'error' ? 'Local detector offline' : 'Companion is ready'}
-        </span>
-        <h2 className="mt-6 max-w-[560px] font-display text-[34px] font-semibold leading-[1.08] tracking-[-.045em] text-ink sm:text-[43px]">
-          Every round starts<br/>with better context.
-        </h2>
-        <p className="mt-4 max-w-[470px] text-[13px] leading-7 text-ink-muted">
-          {running ? 'VALORANT is running. Review your own previous matches and keep upcoming competitions within reach.' :
-            'Open your personal tracker, review official event brackets, or explore the practice lab while your Riot connection is being prepared.'}
-        </p>
-        <div className="mt-7 flex flex-wrap gap-2.5">
-          <ActionLink primary label="Open Live Tracker" onClick={() => onNavigate?.('live')}/>
-          <ActionLink label="Browse tournaments" onClick={() => onNavigate?.('tournaments')}/>
-        </div>
-      </div>
-      <div className="flex flex-col items-center justify-center gap-2 pb-10 lg:pb-0 lg:pr-7">
-        <SignalGlyph running={running} checking={checking} unavailable={status.phase === 'error'}/>
-        <p className="mt-2 text-[12px] font-medium text-ink">{processLabel}</p>
-        <p className="text-center text-[11px] text-ink-muted">Read-only process detection · no game memory access</p>
-      </div>
-    </section>
+    <SessionTape matches={tape} sample={showSample}
+      rankLabel={showSample ? 'Diamond 2' : (rankCurrent.tier ? String(rankCurrent.tier) : undefined)}
+      rr={showSample ? 74 : (typeof rankCurrent.rr === 'number' ? rankCurrent.rr : undefined)}/>
+    {showSample && <p className="-mt-4 text-[13px] text-ink-muted">This is a sample of what tonight looks like. Connect your Aventas account in Live Tracker and your real games fill the tape.</p>}
 
     <section aria-label="Account performance">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
