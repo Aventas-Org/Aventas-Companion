@@ -12,12 +12,13 @@
  * them on <html> when the user picks another preset.
  */
 :root {
-  --color-app: 13 17 24;
-  --color-panel: 23 29 37;
-  --color-line: 42 52 65;
-  --color-ink: 241 242 240;
-  --color-ink-muted: 160 173 186;
-  --color-accent: 241 111 99;
+  --color-app: 12 12 14;
+  --color-panel: 20 28 40;
+  --color-line: 40 49 64;
+  --color-ink: 255 255 255;
+  --color-ink-muted: 140 147 158;
+  --color-accent: 253 186 116;
+  --color-signal: 196 57 47;
   --app-background: none;
 }
 
@@ -85,8 +86,10 @@ body {
  * esports scoreboard rather than a generic dashboard/card template.
  * Fonts are Windows-native; there are no network font requests. */
 :root {
-  --font-ui: 'Segoe UI Variable Text', 'Segoe UI', system-ui, sans-serif;
-  --font-display: 'Bahnschrift', 'Segoe UI Variable Display', 'Segoe UI', sans-serif;
+  /* Same type as the website tracker; bundled via @fontsource, no network requests. */
+  --font-ui: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  --font-display: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, Consolas, monospace;
 }
 body { font-family: var(--font-ui); font-size: 14px; -webkit-font-smoothing: antialiased; }
 h1, h2, h3, h4, .display-type { font-family: var(--font-display); }
@@ -98,7 +101,7 @@ button { -webkit-tap-highlight-color: transparent; }
 @layer components {
   .app-shell { background-position: center top; }
   .app-sidebar {
-    background: rgb(var(--color-panel) / .92);
+    background: rgb(15 15 17);
     border-color: rgb(var(--color-line) / .82);
     backdrop-filter: blur(18px);
   }
@@ -108,22 +111,28 @@ button { -webkit-tap-highlight-color: transparent; }
     backdrop-filter: blur(20px);
   }
   .app-main {
-    background: linear-gradient(180deg, rgb(var(--color-panel) / .17) 0, transparent 28rem);
+    background: none;
   }
   .app-main-inner { max-width: 1500px; margin-inline: auto; }
   .page-stage { padding: 30px clamp(20px, 3.2vw, 52px) 64px; max-width: 1560px; margin-inline: auto; }
-  .page-kicker { color: rgb(var(--color-ink-muted)); font-size: 11px; font-weight: 600; letter-spacing: .02em; }
+  .page-kicker, .a-eyebrow { color: rgb(var(--color-ink-muted)); font-size: 11px; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; }
+  /* Website eyebrow language: a small red tick before every section label. */
+  .page-kicker::before, .a-eyebrow::before {
+    content: ""; display: inline-block; width: .85rem; height: 2px; margin-right: .5rem;
+    vertical-align: .18em; background: rgb(var(--color-signal, 196 57 47));
+    transition: width .45s cubic-bezier(.16,1,.3,1);
+  }
+  .group:hover .a-eyebrow::before { width: 1.4rem; }
   .page-heading { font-family: var(--font-display); font-weight: 660; letter-spacing: -.035em; line-height: 1.06; font-size: clamp(31px, 3.3vw, 48px); color: rgb(var(--color-ink)); }
   .page-description { font-size: 13px; line-height: 1.7; color: rgb(var(--color-ink-muted)); max-width: 650px; }
   .a-panel {
-    background: rgb(var(--color-panel) / .92);
-    border: 1px solid rgb(var(--color-line) / .78);
-    border-radius: 12px;
+    background: rgb(var(--color-panel));
+    border: 1px solid rgb(255 255 255 / .1);
+    border-radius: 8px;
   }
   .a-panel-soft { background: rgb(var(--color-panel) / .48); border: 1px solid rgb(var(--color-line) / .7); border-radius: 10px; }
   .a-subtle-rule { height: 1px; background: rgb(var(--color-line) / .8); }
-  .a-eyebrow { font-size: 11px; font-weight: 650; letter-spacing: .02em; color: rgb(var(--color-ink-muted)); }
-  .a-number { font-family: var(--font-display); font-variant-numeric: tabular-nums; letter-spacing: -.035em; font-weight: 600; }
+  .a-number { font-family: var(--font-mono); font-variant-numeric: tabular-nums; letter-spacing: -.035em; font-weight: 600; }
   .a-button {
     display: inline-flex; align-items: center; justify-content: center; gap: 9px;
     padding: 10px 16px; border-radius: 7px;
@@ -301,7 +310,7 @@ button { -webkit-tap-highlight-color: transparent; }
   border: 1px solid rgb(var(--color-line));
   background: rgb(var(--color-app) / .5);
   border-radius: 4px; padding: 1px 5px;
-  font-size: 10px; font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 10px; font-family: var(--font-mono);
   color: rgb(var(--color-ink-muted));
 }
 .workspace-progress {

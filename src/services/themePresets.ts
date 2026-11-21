@@ -66,12 +66,14 @@ export interface ThemePreset {
 
 /** Harks back to the original charcoal-and-red build. */
 const DARK: ThemePalette = {
-  app: '#0D1118',
-  panel: '#171D25',
-  line: '#2A3441',
-  ink: '#F1F2F0',
-  inkMuted: '#A0ADBA',
-  accent: '#F16F63',
+  // Matches the website tracker (/tracker): near-black canvas, navy panels,
+  // white ink and the orange active state, so web and desktop read as one product.
+  app: '#0C0C0E',
+  panel: '#141C28',
+  line: '#283140',
+  ink: '#FFFFFF',
+  inkMuted: '#8C939E',
+  accent: '#FDBA74',
   background: 'none',
   scheme: 'dark',
 };
