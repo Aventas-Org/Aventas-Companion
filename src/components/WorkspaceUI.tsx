@@ -1,13 +1,13 @@
 import type { ReactNode } from 'react';
 
 /** The same visual vocabulary across Tracker, Events, Directory and Device. */
-export function PageHeader({ eyebrow, title, description, action }: {
-  eyebrow: string; title: string; description: string; action?: ReactNode;
+export function PageHeader({ title, description, action }: {
+  /** Kept for call-site compatibility; breadcrumb labels are no longer shown. */
+  eyebrow?: string; title: string; description: string; action?: ReactNode;
 }) {
   return <header className="flex flex-wrap items-end justify-between gap-4">
     <div className="min-w-0">
-      <p className="page-kicker">{eyebrow}</p>
-      <h1 className="page-heading mt-2">{title}</h1>
+      <h1 className="page-heading">{title}</h1>
       <p className="page-description mt-3">{description}</p>
     </div>
     {action && <div className="flex shrink-0 items-center gap-2">{action}</div>}
@@ -33,13 +33,10 @@ export function Signal({ tone = 'neutral', children }: {
   </span>;
 }
 
-export function EmptyWorkspace({ kicker, title, detail, action }: {
+export function EmptyWorkspace({ title, detail, action }: {
   kicker?: string; title: string; detail: string; action?: ReactNode;
 }) {
   return <div className="a-empty relative overflow-hidden !p-7 md:!p-10">
-    <div className="pointer-events-none absolute -right-10 -top-16 size-52 rounded-full border border-line/50" aria-hidden="true"/>
-    <div className="pointer-events-none absolute right-4 top-0 size-28 rounded-full border border-line/40" aria-hidden="true"/>
-    {kicker && <p className="a-eyebrow relative mb-3 tracking-[.13em]">{kicker}</p>}
     <p className="relative font-display text-[19px] font-semibold tracking-[-.02em] text-ink">{title}</p>
     <p className="relative mt-2 max-w-[480px] text-[12px] leading-6 text-ink-muted">{detail}</p>
     {action && <div className="relative mt-5">{action}</div>}

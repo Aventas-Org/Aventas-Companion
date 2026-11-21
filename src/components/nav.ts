@@ -28,7 +28,7 @@ export const NAV_ITEMS: NavItem[] = [
   { id: 'insights', label: 'Demo: Insights', enabled: true },
   { id: 'matches', label: 'Demo: Matches', enabled: true },
   { id: 'tournaments', label: 'Tournaments', enabled: true },
-  { id: 'utilities', label: 'Gaming Utilities', enabled: true },
+  { id: 'utilities', label: 'Device', enabled: true },
   { id: 'profile', label: 'Riot ID Preview', enabled: true },
   { id: 'statistics', label: 'Demo: Statistics', enabled: true },
   { id: 'settings', label: 'Settings', enabled: true },

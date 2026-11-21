@@ -149,28 +149,31 @@ function OfficialBracket({ bracket }: { bracket: Bracket }) {
   </section>;
 }
 
+/** A fixture-list row: the date leads, the way a sports schedule reads. */
 function EventRow({ event, selected, onSelect }: { event:Tournament;selected:boolean;onSelect:()=>void }) {
   const count=teamCount(event);
+  const start=typeof event.startsAt==='number'&&event.startsAt>0?new Date(event.startsAt):null;
+  const live=event.status==='live', done=event.status==='completed';
   return <button type="button" onClick={onSelect} aria-pressed={selected}
-    className={'a-pressable group flex w-full items-center gap-4 border-b border-line/60 px-4 py-4 text-left last:border-0 '+
-      (selected?'bg-accent/[.075]':'')}>
-    <span className={'workspace-avatar !size-[45px] '+(selected?'!border-accent/40':'')}>A</span>
-    <span className="min-w-0 flex-1">
-      <span className="block truncate font-display text-[15px] font-semibold text-ink">{event.name}</span>
-      <span className="mt-1 block truncate text-[11px] text-ink-muted">
-        {event.game||'VALORANT'} · {event.region||'Region not specified'} · {timeline(event.startsAt)}
+    className={'grid w-full grid-cols-[3.25rem_1fr_auto] items-center gap-4 border-b border-line/60 px-4 py-4 text-left transition-colors last:border-0 '+
+      (selected?'bg-line/60':'hover:bg-line/30')+(done?' opacity-70':'')}>
+    <span className="text-center leading-none">
+      <span className="figure block text-[30px] font-semibold text-ink">{start?start.getDate():'–'}</span>
+      <span className="mt-1 block text-[12px] text-ink-muted">{start?start.toLocaleDateString(undefined,{month:'short'}):'TBA'}</span>
+    </span>
+    <span className="min-w-0">
+      <span className="block truncate text-[15px] font-semibold text-ink">{event.name}</span>
+      <span className="mt-1 block truncate text-[13px] text-ink-muted">
+        {[event.format, event.region, typeof count==='number'?(event.maxTeams?`${count} of ${event.maxTeams} teams`:`${count} teams`):null].filter(Boolean).join(', ')||'Details on the website'}
       </span>
     </span>
-    <span className="hidden min-w-[62px] text-right sm:block">
-      <span className="block font-mono text-[12px] font-semibold text-ink">{typeof count==='number'?count:'—'}</span>
-      <span className="text-[10px] text-ink-muted">Teams</span>
+    <span className="text-right">
+      {live?<span className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-ink"><span className="tape-dot" aria-hidden="true"/>Live</span>:
+        done?<span className="text-[13px] text-ink-muted">{event.champion?`Won by ${event.champion}`:'Finished'}</span>:
+        event.registrationOpen?<span className="text-[13px] font-semibold text-[#5BB98C]">Registration open</span>:
+        <span className="text-[13px] text-ink-muted">Upcoming</span>}
+      {event.prizePool&&<span className="figure mt-0.5 block text-[15px] text-ink">{event.prizePool}</span>}
     </span>
-    <span className={'rounded-[5px] border px-2 py-1 text-[10px] font-semibold tracking-[.03em] '+
-      (event.status==='live'?'border-emerald-400/30 bg-emerald-400/5 text-emerald-400':
-        event.status==='completed'?'border-line text-ink-muted':'border-accent/25 bg-accent/5 text-accent')}>
-      {event.status}
-    </span>
-    <span className="text-[18px] text-ink-muted transition-transform group-hover:translate-x-0.5" aria-hidden="true">›</span>
   </button>;
 }
 
@@ -202,7 +205,13 @@ export function TournamentsPage() {
       const data=await invoke<{tournaments:unknown[]}>('fetch_public_tournaments');
       if(!Array.isArray(data?.tournaments))throw Error('Unexpected website response');
       if(listRequest.current!==id)return;
-      const rows=data.tournaments.filter(validTournament).sort((a,b)=>(b.startsAt||0)-(a.startsAt||0));
+      const rows=data.tournaments.filter(validTournament).sort((a,b)=>{
+        // Schedule order: live first, then upcoming soonest-first, then finished newest-first.
+        const order={live:0,upcoming:1,completed:2} as const;
+        if(order[a.status]!==order[b.status])return order[a.status]-order[b.status];
+        const sa=a.startsAt||Number.MAX_SAFE_INTEGER, sb=b.startsAt||Number.MAX_SAFE_INTEGER;
+        return a.status==='completed'?sb-sa:sa-sb;
+      });
       setListing({phase:'ready',rows});
       setLastSync(Date.now());
       setSelected(old=>old&&!rows.some(e=>e.slug===old)?null:old);
@@ -237,27 +246,27 @@ export function TournamentsPage() {
   },[selected,revision]);
 
   return <div className="page-stage space-y-7">
-    <PageHeader eyebrow="Aventas / Competition" title="Tournament control."
-      description="Explore the official event calendar, inspect full brackets, and follow results published by Aventas."
-      action={<button type="button" onClick={()=>setRevision(v=>v+1)} className="a-button">↻ Refresh events</button>}/>
+    <PageHeader title="Tournaments"
+      description="Official Aventas events, their brackets and results. Register on the website."
+      action={<button type="button" onClick={()=>setRevision(v=>v+1)} className="a-button">Refresh</button>}/>
     <div className="flex flex-wrap items-center justify-between gap-3">
       <WorkspaceTabs items={FILTERS} value={filter}
         onChange={next=>{setFilter(next);setSelected(null);}} label="Tournament event status"/>
       <span className="text-[11px] text-ink-muted">
-        {lastSync?'Last website check · '+new Date(lastSync).toLocaleTimeString():'Connecting to Aventas website'}
+        {lastSync?'Updated '+new Date(lastSync).toLocaleTimeString():'Connecting to Aventas website'}
       </span>
     </div>
     {listing.phase==='loading'&&<LoadingWorkspace label="Loading official Aventas tournaments…"/>}
     {listing.phase==='error'&&<ErrorWorkspace detail="The website did not respond. Previously loaded events may be out of date."
       onRetry={()=>setRevision(v=>v+1)}/>}
     {listing.phase==='ready'&&!listing.rows.length&&
-      <EmptyWorkspace kicker="Event calendar" title="No published tournaments yet."
+      <EmptyWorkspace title="No tournaments published yet"
         detail="When organizers publish an event on the Aventas website it will appear here automatically. All brackets and results remain website-owned."/>}
     {listing.rows.length>0&&<div className="grid gap-5 xl:grid-cols-[minmax(315px,.9fr)_minmax(0,1.1fr)]">
       <section className="workspace-panel self-start">
         <div className="flex items-center justify-between gap-3 border-b border-line px-5 py-4">
-          <p className="font-display text-[16px] font-semibold text-ink">Event index</p>
-          <span className="a-chip">{filtered.length} events</span>
+          <p className="text-[15px] font-semibold text-ink">Schedule</p>
+          <span className="text-[13px] text-ink-muted">{filtered.length} {filtered.length===1?'event':'events'}</span>
         </div>
         <div className="border-b border-line px-4 py-3">
           <label className="sr-only" htmlFor="event-search">Search official Aventas tournaments</label>
@@ -271,8 +280,7 @@ export function TournamentsPage() {
       </section>
       <div className="a-panel-soft flex min-h-[220px] flex-col justify-center p-6">
         {!selected?<div>
-          <p className="page-kicker">Event details</p>
-          <h2 className="mt-4 font-display text-[24px] font-semibold text-ink">Select a tournament.</h2>
+          <h2 className="font-display text-[22px] font-semibold text-ink">Pick an event to see its bracket</h2>
           <p className="mt-3 max-w-[380px] text-[12px] leading-6 text-ink-muted">
             View the official match tree and any approved scores. Registration stays on the website.
           </p>
@@ -280,16 +288,16 @@ export function TournamentsPage() {
           detail.phase==='error'?<ErrorWorkspace detail="Unable to verify this tournament snapshot. Try refreshing to fetch the newest version."
           onRetry={()=>setRevision(v=>v+1)}/>:
           <div className="space-y-4">
-            <Signal tone={current?.status==='live'?'live':'neutral'}>{current?.status==='live'?'Tournament live':'Official tournament'}</Signal>
+            {current?.status==='live'&&<p className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-ink"><span className="tape-dot" aria-hidden="true"/>Live now</p>}
             <h2 className="font-display text-[27px] font-semibold leading-[1.12] tracking-[-.035em] text-ink">{current?.name}</h2>
-            <p className="text-[12px] text-ink-muted">{current?.region||'Region pending'} · {timeline(current?.startsAt)}</p>
+            <p className="text-[12px] text-ink-muted">{current?.region||'Region pending'}, {timeline(current?.startsAt)}</p>
             <div className="grid grid-cols-2 gap-3 border-y border-line py-4 text-[12px]">
               <div><p className="text-ink-muted">Approved teams</p>
                 <p className="a-number mt-2 text-[24px] text-ink">{detail.data?.teams.length??0}</p></div>
               <div><p className="text-ink-muted">Matchups</p>
                 <p className="a-number mt-2 text-[24px] text-ink">{detail.data?.matches.length??0}</p></div>
             </div>
-            {current?.champion&&<p className="text-[12px] font-semibold text-emerald-400">Champion · {current.champion}</p>}
+            {current?.champion&&<p className="text-[12px] font-semibold text-emerald-400">Champion: {current.champion}</p>}
             <button type="button" className="a-button a-button-primary w-fit"
               onClick={()=>void openOfficial(selected)}>Registration & event details</button>
             {openError&&<p role="alert" className="text-[11px] text-amber-300">

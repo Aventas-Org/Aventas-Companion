@@ -1,3 +1,4 @@
+import { SessionRecap, PersonalBestToast } from '../components/SessionRecap';
 import { SessionTape, type TapeMatch } from '../components/SessionTape';
 import { useEffect, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
@@ -63,6 +64,16 @@ const SAMPLE_TAPE: TapeMatch[] = [
   { id: 's3', map: 'Lotus', agent: 'Omen', won: 13, lost: 7, rr: 24, kills: 19, deaths: 11, assists: 9, acs: 247, playedAt: T0 + 2 },
   { id: 's4', map: 'Bind', agent: 'Raze', won: 13, lost: 11, rr: 18, kills: 22, deaths: 16, assists: 5, acs: 255, playedAt: T0 + 3 },
   { id: 's5', map: 'Sunset', agent: 'Jett', won: 13, lost: 10, rr: 20, kills: 26, deaths: 15, assists: 3, acs: 291, playedAt: T0 + 4 },
+];
+
+// Older sample games, so the sample recap can show how personal bests read.
+const SAMPLE_HISTORY: TapeMatch[] = [
+  { id: 'h1', map: 'Haven', agent: 'Jett', won: 13, lost: 8, kills: 23, deaths: 12, assists: 5, acs: 284, playedAt: T0 - 86_400_000 },
+  { id: 'h2', map: 'Split', agent: 'Raze', won: 10, lost: 13, kills: 18, deaths: 17, assists: 6, acs: 231, playedAt: T0 - 2 * 86_400_000 },
+  { id: 'h3', map: 'Bind', agent: 'Jett', won: 13, lost: 6, kills: 25, deaths: 10, assists: 4, acs: 276, playedAt: T0 - 3 * 86_400_000 },
+  { id: 'h4', map: 'Ascent', agent: 'Omen', won: 13, lost: 11, kills: 16, deaths: 14, assists: 11, acs: 219, playedAt: T0 - 4 * 86_400_000 },
+  { id: 'h5', map: 'Lotus', agent: 'Jett', won: 7, lost: 13, kills: 14, deaths: 17, assists: 3, acs: 198, playedAt: T0 - 5 * 86_400_000 },
+  { id: 'h6', map: 'Pearl', agent: 'Sova', won: 13, lost: 9, kills: 20, deaths: 13, assists: 9, acs: 247, playedAt: T0 - 6 * 86_400_000 },
 ];
 
 export function OverviewPage({ onNavigate }: { onNavigate?: (id: NavId) => void }) {
@@ -147,10 +158,14 @@ export function OverviewPage({ onNavigate }: { onNavigate?: (id: NavId) => void 
         kills: m.kills as number | undefined, deaths: m.deaths as number | undefined, assists: m.assists as number | undefined,
         acs: m.acs as number | undefined, playedAt: Number(m.playedAt ?? 0) };
     })
-    .filter(m => m.playedAt > Date.now() - 12 * 3600_000);
+    ;
+  const cutoff = Date.now() - 12 * 3600_000;
+  const liveTonight = liveTape.filter(m => m.playedAt > cutoff);
+  const liveEarlier = liveTape.filter(m => m.playedAt <= cutoff);
   const rankCurrent = record(record(dashboard?.rank).current);
   const showSample = !hasResults;
-  const tape = showSample ? SAMPLE_TAPE : liveTape;
+  const tape = showSample ? SAMPLE_TAPE : liveTonight;
+  const earlier = showSample ? SAMPLE_HISTORY : liveEarlier;
 
   return <div className="page-stage space-y-7">
     <div className="flex flex-wrap items-center justify-between gap-3">
@@ -168,6 +183,8 @@ export function OverviewPage({ onNavigate }: { onNavigate?: (id: NavId) => void 
     <SessionTape matches={tape} sample={showSample}
       rankLabel={showSample ? 'Diamond 2' : (rankCurrent.tier ? String(rankCurrent.tier) : undefined)}
       rr={showSample ? 74 : (typeof rankCurrent.rr === 'number' ? rankCurrent.rr : undefined)}/>
+    <SessionRecap tonight={tape} earlier={earlier} sample={showSample}/>
+    <PersonalBestToast tonight={tape} earlier={earlier} sample={showSample}/>
     {showSample && <p className="-mt-4 text-[13px] text-ink-muted">This is a sample of what tonight looks like. Connect your Aventas account in Live Tracker and your real games fill the tape.</p>}
 
     <section aria-label="Account performance">
