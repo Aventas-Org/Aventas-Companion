@@ -27,7 +27,7 @@ export const NAV_ITEMS: NavItem[] = [
   { id: 'performance', label: 'Demo: Round Analysis', enabled: true },
   { id: 'benchmark', label: 'Demo: Benchmark', enabled: true },
   { id: 'insights', label: 'Demo: Insights', enabled: true },
-  { id: 'matches', label: 'Demo: Matches', enabled: true },
+  { id: 'matches', label: 'Demo: Tracker Profile', enabled: true },
   { id: 'tournaments', label: 'Tournaments', enabled: true },
   { id: 'utilities', label: 'Gaming Utilities', enabled: true },
   { id: 'profile', label: 'Riot ID Preview', enabled: true },

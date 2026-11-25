@@ -7,7 +7,7 @@ import { LiveTrackerPage } from './pages/LiveTrackerPage';
 import { PlayerDirectoryPage } from './pages/PlayerDirectoryPage';
 import { AccountProvider } from './platform/AccountContext';
 import { ProfilePage } from './pages/ProfilePage';
-import { MatchHistoryPage } from './pages/MatchHistoryPage';
+import { TrackerProfilePage } from './pages/TrackerProfilePage';
 import { TournamentsPage } from './pages/TournamentsPage';
 import { GamingUtilitiesPage } from './pages/GamingUtilitiesPage';
 import { StatisticsPage } from './pages/StatisticsPage';
@@ -23,7 +23,7 @@ type PageProps = { onNavigate?: (id: NavId) => void };
 const PAGES: Record<NavId, ComponentType<PageProps>> = {
   overview: OverviewPage, live: LiveTrackerPage, directory: PlayerDirectoryPage,
   performance: PerformancePage, benchmark: BenchmarkPage, insights: InsightsPage,
-  matches: MatchHistoryPage, tournaments: TournamentsPage, utilities: GamingUtilitiesPage,
+  matches: TrackerProfilePage, tournaments: TournamentsPage, utilities: GamingUtilitiesPage,
   profile: ProfilePage, livematch: LiveMatchPage, statistics: StatisticsPage, settings: SettingsPage,
 };
 

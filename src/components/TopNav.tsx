@@ -12,7 +12,7 @@ const tabs: { id: NavId; label: string; Icon: typeof OverviewIcon }[] = [
   { id: 'directory', label: 'Players', Icon: UserIcon },
   { id: 'utilities', label: 'Device', Icon: GamepadIcon },
 ];
-export const LAB_IDS: NavId[] = ['livematch', 'performance', 'benchmark', 'insights', 'matches', 'profile', 'statistics'];
+export const LAB_IDS: NavId[] = ['matches', 'livematch', 'performance', 'benchmark', 'insights', 'profile', 'statistics'];
 const labelOf = (id: NavId) => NAV_ITEMS.find(item => item.id === id)!.label.replace('Demo: ', '');
 
 interface TopNavProps { active: NavId; onNavigate: (id: NavId) => void; onSearch: () => void }
