@@ -452,3 +452,22 @@ tr[data-result='loss'] .result-tag { color: #f06d80; }
   .home-layout { flex-direction: column; }
   .home-rail { width: 100%; border-right: 0; border-bottom: 1px solid rgb(var(--color-line)); }
 }
+
+/* Live match roster: team colour on the row edge, agent columns set apart. */
+.live-roster td { height: 54px; }
+.live-roster tbody[data-team='enemy'] tr:first-child td { border-top: 6px solid rgb(var(--color-app)); }
+.live-roster tr[data-team='ally'] td:first-child { border-left-color: #3fbf8a; background: linear-gradient(90deg, rgb(63 191 138 / .18), transparent 85%); }
+.live-roster tr[data-team='enemy'] td:first-child { border-left-color: #e0566a; background: linear-gradient(90deg, rgb(224 86 106 / .18), transparent 85%); }
+.live-roster tr[data-you] td { background-color: rgb(var(--color-accent) / .06); }
+.live-roster tr[data-you] td:first-child { border-left-color: rgb(var(--color-accent)); }
+.live-roster .agent-col { background-color: rgb(var(--color-app) / .45); }
+.live-roster td.num { font-size: 16px; font-weight: 600; }
+.agent-chip {
+  display: inline-flex; align-items: center; justify-content: center; flex: none;
+  width: 34px; height: 34px; border-radius: 6px; border: 1px solid rgb(var(--color-line));
+  background: rgb(var(--color-app)); font-family: var(--font-display); font-size: 13px; font-weight: 700;
+  color: rgb(var(--color-ink));
+}
+.private-cell { text-align: center; color: rgb(var(--color-ink-muted)); font-size: 12px; }
+[data-team-card='ally'] { border-top: 3px solid #3fbf8a; }
+[data-team-card='enemy'] { border-top: 3px solid #e0566a; }

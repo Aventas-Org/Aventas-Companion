@@ -14,6 +14,7 @@ import { StatisticsPage } from './pages/StatisticsPage';
 import { PerformancePage } from './pages/PerformancePage';
 import { BenchmarkPage } from './pages/BenchmarkPage';
 import { InsightsPage } from './pages/InsightsPage';
+import { LiveMatchPage } from './pages/LiveMatchPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { NAV_ITEMS, type NavId } from './components/nav';
 import './App.css';
@@ -23,7 +24,7 @@ const PAGES: Record<NavId, ComponentType<PageProps>> = {
   overview: OverviewPage, live: LiveTrackerPage, directory: PlayerDirectoryPage,
   performance: PerformancePage, benchmark: BenchmarkPage, insights: InsightsPage,
   matches: MatchHistoryPage, tournaments: TournamentsPage, utilities: GamingUtilitiesPage,
-  profile: ProfilePage, statistics: StatisticsPage, settings: SettingsPage,
+  profile: ProfilePage, livematch: LiveMatchPage, statistics: StatisticsPage, settings: SettingsPage,
 };
 
 function Workbench() {

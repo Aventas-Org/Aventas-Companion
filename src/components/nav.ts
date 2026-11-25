@@ -10,6 +10,7 @@ export type NavId =
   | 'utilities'
   | 'profile'
   | 'statistics'
+  | 'livematch'
   | 'settings';
 
 export interface NavItem {
@@ -31,5 +32,6 @@ export const NAV_ITEMS: NavItem[] = [
   { id: 'utilities', label: 'Gaming Utilities', enabled: true },
   { id: 'profile', label: 'Riot ID Preview', enabled: true },
   { id: 'statistics', label: 'Demo: Statistics', enabled: true },
+  { id: 'livematch', label: 'Demo: Live Match', enabled: true },
   { id: 'settings', label: 'Settings', enabled: true },
 ];
