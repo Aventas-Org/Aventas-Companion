@@ -20,6 +20,24 @@ function isPlayer(value:unknown):value is PublicPlayer{
   return typeof p.handle==='string'&&/^[0-9a-f]{18}$/.test(p.handle) &&
     typeof p.riotId==='string'&&typeof p.tagline==='string';
 }
+const TIERS=['iron','bronze','silver','gold','platinum','diamond','ascendant','immortal','radiant'];
+const TIER_COLOR=['#7d8288','#b4805a','#c6ccd2','#e6ae48','#4fb3c4','#b48cf0','#43c27f','#e0566a','#f4e3a1'];
+function tierIndex(r?:Rank){return r?TIERS.indexOf(r.tier.toLowerCase()):-1;}
+/** Comparable rank score: tier, then division, then RR. */
+function rankScore(r?:Rank){return r?tierIndex(r)*1000+r.division*100+r.rr:-1;}
+type SortKey='rank'|'name'|'level';
+// Leaderboard layout adapted from the 21st.dev "Leaderboard Table" component:
+// medal badges for the top three, sortable headers, avatar + handle cell.
+const MEDAL=['', 'medal-gold', 'medal-silver', 'medal-bronze'];
+function RankCell({value}:{value?:Rank}){
+  if(!value)return <span className="text-ink-muted">Unranked</span>;
+  const c=TIER_COLOR[Math.max(tierIndex(value),0)];
+  return <span className="flex items-center gap-2.5">
+    <svg width="20" height="22" viewBox="0 0 22 24" aria-hidden="true"><path d="M11 1 21 7v10l-10 6L1 17V7z" fill={c} fillOpacity=".16" stroke={c} strokeWidth="1.5"/><path d="M11 7 16 10v4l-5 3-5-3v-4z" fill={c}/></svg>
+    <span className="leading-tight"><span className="block text-[12px] text-ink">{value.tier} {value.division}</span>
+    <span className="block font-display text-[13px] font-semibold text-ink">{value.rr} <span className="text-[10px] font-normal text-ink-muted">RR</span></span></span>
+  </span>;
+}
 function rank(value?:Rank){return value?value.tier+' '+value.division+' · '+value.rr+' RR':'Not available';}
 
 export function PlayerDirectoryPage(){
@@ -27,6 +45,7 @@ export function PlayerDirectoryPage(){
   const [players,setPlayers]=useState<PublicPlayer[]>([]);
   const [active,setActive]=useState<PublicPlayer|null>(null);
   const [profileStatus,setProfileStatus]=useState<Status>('idle');
+  const [sort,setSort]=useState<{key:SortKey;dir:1|-1}>({key:'rank',dir:-1});
   const searchEpoch=useRef(0),profileEpoch=useRef(0);
   useEffect(()=>()=>{++searchEpoch.current;++profileEpoch.current;},[]);
 
@@ -55,61 +74,70 @@ export function PlayerDirectoryPage(){
     }catch{if(epoch===profileEpoch.current)setProfileStatus('error');}
   }
 
-  return <div className="page-stage space-y-7">
-    <PageHeader eyebrow="Aventas / Community" title="Player directory"
-      description="Find public competitive profiles from the Aventas network. Only players who opted in on the website appear here."/>
-    <section className="a-hero flex flex-col gap-6 p-7 lg:flex-row lg:items-end lg:justify-between lg:p-9">
-      <div className="max-w-[480px]">
-        <Signal tone="accent">Privacy by default</Signal>
-        <h2 className="mt-5 font-display text-[26px] font-semibold leading-[1.15] tracking-[-.035em] text-ink">
-          Discover the competition.<br/>Respect the player.
-        </h2>
-        <p className="mt-3 text-[12px] leading-6 text-ink-muted">
-          Search by a Riot name. The public directory excludes email, account identifiers,
-          private match lists and anyone who has not enabled visibility.
-        </p>
-      </div>
-      <form onSubmit={event=>void submit(event)} className="flex w-full max-w-[510px] flex-wrap gap-2">
-        <label className="sr-only" htmlFor="directory-search">Search public Riot name</label>
-        <input id="directory-search" className="a-input min-w-[180px] flex-1"
-          type="search" placeholder="Search Riot ID, e.g. PlayerName"
+  const placed=[...players].sort((x,y)=>rankScore(y.currentRank)-rankScore(x.currentRank))
+    .map((p,i)=>({p,place:p.currentRank?i+1:0}));
+  const sorted=[...placed].sort((x,y)=>{
+    const v=sort.key==='name'?x.p.riotId.localeCompare(y.p.riotId):
+      sort.key==='level'?(x.p.accountLevel||0)-(y.p.accountLevel||0):
+      rankScore(x.p.currentRank)-rankScore(y.p.currentRank);
+    return v*sort.dir;
+  });
+  const header=(key:SortKey,label:string,num=false)=><th scope="col" className={num?'num':''}
+    aria-sort={sort.key===key?(sort.dir===1?'ascending':'descending'):'none'}>
+    <button type="button" className="sort-head" onClick={()=>setSort(s=>({key,dir:s.key===key?(s.dir===1?-1:1):(key==='name'?1:-1)}))}>
+      {label}{sort.key===key&&<span aria-hidden="true">{sort.dir===1?'▲':'▼'}</span>}
+    </button>
+  </th>;
+
+  return <div className="page-stage space-y-5">
+    <div className="flex flex-wrap items-end justify-between gap-4">
+      <PageHeader eyebrow="Community" title="Players"
+        description="Search public profiles. Only players who turned on visibility on the Aventas website appear here."/>
+      <form onSubmit={event=>void submit(event)} className="flex w-full max-w-[460px] gap-2">
+        <label className="sr-only" htmlFor="directory-search">Search by Riot name</label>
+        <input id="directory-search" className="a-input min-w-[160px] flex-1"
+          type="search" placeholder="Riot name, e.g. PlayerName"
           autoComplete="off" minLength={2} maxLength={32}
           value={query} onChange={event=>setQuery(event.target.value)}/>
-        <button type="submit" disabled={status==='loading'} className="a-button a-button-primary !px-6">
-          {status==='loading'?'Searching…':'Find players'}
+        <button type="submit" disabled={status==='loading'} className="a-button a-button-primary !px-5">
+          {status==='loading'?'Searching…':'Search'}
         </button>
       </form>
-    </section>
-    <div className="grid gap-6 xl:grid-cols-[minmax(300px,.82fr)_minmax(0,1.18fr)]">
-      <section className="workspace-panel self-start">
-        <div className="flex items-center justify-between gap-3 border-b border-line px-5 py-4">
-          <div>
-            <h2 className="font-display text-[17px] font-semibold text-ink">Public profiles</h2>
-            <p className="mt-1 text-[11px] text-ink-muted">Opted-in results only</p>
-          </div>
-          {status==='ready'&&<span className="a-chip">{players.length} found</span>}
+    </div>
+    <div className={'grid gap-5 '+(profileStatus!=='idle'?'xl:grid-cols-[minmax(0,1fr)_440px]':'')}>
+      <section className="a-panel self-start overflow-hidden" aria-label="Search results">
+        <div className="flex items-center justify-between gap-3 border-b border-line px-4 py-3">
+          <h2 className="section-title">Results</h2>
+          {status==='ready'&&<span className="text-[12px] text-ink-muted">{players.length} {players.length===1?'player':'players'}</span>}
         </div>
-        {status==='idle'&&<div className="p-6"><EmptyWorkspace title="Ready when you are."
-          detail="Enter at least two characters of a player’s Riot name to search the opted-in directory."/></div>}
-        {status==='loading'&&<div className="p-4"><LoadingWorkspace label="Searching the website directory…"/></div>}
-        {status==='error'&&<div className="p-4"><ErrorWorkspace detail="This search could not be completed. Try a shorter Riot name or check your connection."/></div>}
+        {status==='idle'&&<p className="px-4 py-10 text-center text-[12px] text-ink-muted">Type at least two letters of a Riot name to search.</p>}
+        {status==='loading'&&<div className="p-4"><LoadingWorkspace label="Searching public profiles…"/></div>}
+        {status==='error'&&<div className="p-4"><ErrorWorkspace detail="Search didn’t complete. Check your connection, or try a name between 2 and 32 characters."/></div>}
         {status==='ready'&&players.length===0&&
-          <p className="px-6 py-9 text-[12px] leading-6 text-ink-muted">No opted-in players matched. Hidden accounts will never appear in public search.</p>}
-        {status==='ready'&&players.map(p=><button key={p.handle} type="button"
-          onClick={()=>void select(p)} aria-pressed={active?.handle===p.handle}
-          className={'workspace-row group w-full text-left '+(active?.handle===p.handle?'bg-accent/[.07]':'')}>
-          <span className="workspace-avatar">{p.riotId.slice(0,1).toUpperCase()}</span>
-          <span className="min-w-0 flex-1">
-            <span className="block truncate font-display text-[14px] font-semibold text-ink">{p.riotId}<span className="text-ink-muted">#{p.tagline}</span></span>
-            <span className="mt-1 block text-[11px] text-ink-muted">{p.region||'Region unavailable'} · {rank(p.currentRank)}</span>
-          </span>
-          <span className="text-[17px] text-ink-muted group-hover:text-accent" aria-hidden="true">›</span>
-        </button>)}
+          <p className="px-4 py-10 text-center text-[12px] text-ink-muted">No public players match that name. Private accounts never show up in search.</p>}
+        {status==='ready'&&players.length>0&&<div className="overflow-x-auto"><table className="roster-table leaderboard">
+          <thead><tr>
+            <th scope="col" className="w-14 !text-center">#</th>
+            {header('name','Player')}{header('rank','Rank')}{header('level','Level',true)}
+            <th scope="col"><span className="sr-only">Open</span></th>
+          </tr></thead>
+          <tbody>{sorted.map(({p,place})=><tr key={p.handle} aria-selected={active?.handle===p.handle}
+            className="cursor-pointer" onClick={()=>void select(p)}>
+            <td className="!text-center">{place>0&&place<=3?<span className={'medal '+MEDAL[place]}>{place}</span>:
+              <span className="tabular-nums text-ink-muted">{place||'—'}</span>}</td>
+            <td><span className="flex items-center gap-3">
+              <span className="workspace-avatar !size-8 !rounded-full !text-[13px]">{p.riotId.slice(0,1).toUpperCase()}</span>
+              <span className="min-w-0"><span className="block truncate font-semibold text-ink">{p.riotId}<span className="font-normal text-ink-muted">#{p.tagline}</span></span>
+              <span className="block text-[11px] text-ink-muted">{p.region||'Region unknown'}</span></span>
+            </span></td>
+            <td><RankCell value={p.currentRank}/></td>
+            <td className="num text-ink">{formatMetric(p.accountLevel)}</td>
+            <td className="!pr-4 text-right"><button type="button" className="workspace-link" onClick={e=>{e.stopPropagation();void select(p);}}>View profile</button></td>
+          </tr>)}</tbody>
+        </table></div>}
       </section>
-      <section className="min-w-0 space-y-4">
-        {profileStatus==='idle'&&<EmptyWorkspace kicker="Player report" title="Select a public profile."
-          detail="A player’s full opted-in aggregate report appears here. We never reveal private match data, account IDs or personal contact details."/>}
-        {profileStatus==='loading'&&<LoadingWorkspace label="Fetching this player’s opted-in report…"/>}
+      <section className="player-detail min-w-0 space-y-4">
+                {profileStatus==='loading'&&<LoadingWorkspace label="Fetching this player’s opted-in report…"/>}
         {profileStatus==='error'&&<ErrorWorkspace detail="This profile is no longer public or the website could not load it. Public consent may have changed."/>}
         {profileStatus==='ready'&&active&&<>
           <div className="a-panel space-y-5 p-6 sm:p-7">
@@ -117,23 +145,22 @@ export function PlayerDirectoryPage(){
               <div className="flex items-center gap-4">
                 <span className="workspace-avatar !size-14 !text-[24px]">{active.riotId.slice(0,1).toUpperCase()}</span>
                 <div>
-                  <p className="page-kicker">Verified public listing</p>
-                  <h2 className="mt-1 font-display text-[23px] font-semibold tracking-[-.035em] text-ink">{active.riotId}<span className="text-ink-muted">#{active.tagline}</span></h2>
+                                    <h2 className="mt-1 font-display text-[23px] font-semibold tracking-[-.035em] text-ink">{active.riotId}<span className="text-ink-muted">#{active.tagline}</span></h2>
                   <p className="mt-1 text-[11px] text-ink-muted">{active.region||'Region unknown'} · Account level {formatMetric(active.accountLevel)}</p>
                 </div>
               </div>
               <Signal tone="live">Visibility enabled</Signal>
             </div>
             <div className="grid gap-3 border-t border-line pt-5 sm:grid-cols-2">
-              <div><p className="a-eyebrow">CURRENT RANK</p><p className="mt-2 font-display text-[18px] font-semibold text-ink">{rank(active.currentRank)}</p></div>
-              <div><p className="a-eyebrow">PEAK RANK</p><p className="mt-2 font-display text-[18px] font-semibold text-ink">{rank(active.peakRank)}</p></div>
+              <div><p className="a-eyebrow">Current rank</p><p className="mt-2 font-display text-[18px] font-semibold text-ink">{rank(active.currentRank)}</p></div>
+              <div><p className="a-eyebrow">Peak rank</p><p className="mt-2 font-display text-[18px] font-semibold text-ink">{rank(active.peakRank)}</p></div>
             </div>
           </div>
           {active.statistics&&active.statistics.games>0?<MetricGrid values={[
-            {label:'MATCHES',value:formatMetric(active.statistics.games),hint:'Public aggregate'},
-            {label:'WIN RATE',value:formatMetric(active.statistics.winRate,1,'%'),hint:'Competitive',tone:'positive'},
-            {label:'K/D RATIO',value:formatMetric(active.statistics.kd,2),hint:'Competitive'},
-            {label:'AVERAGE ACS',value:formatMetric(active.statistics.acs),hint:'Recorded data'},
+            {label:'Matches',value:formatMetric(active.statistics.games),hint:'Public aggregate'},
+            {label:'Win rate',value:formatMetric(active.statistics.winRate,1,'%'),hint:'Competitive',tone:'positive'},
+            {label:'K/D',value:formatMetric(active.statistics.kd,2),hint:'Competitive'},
+            {label:'Average combat score',value:formatMetric(active.statistics.acs),hint:'Recorded data'},
           ]}/>:<EmptyWorkspace kicker="Player performance" title="No public match aggregates yet."
             detail="This player chose to be listed, but no public competitive history has been synchronized. We do not display placeholder wins or ranks."/>}
           {!!active.topAgents?.length&&<div className="workspace-panel">

@@ -522,3 +522,19 @@ tr[data-result='loss'] .result-tag { color: #f06d80; }
   .tracker-kpis > div { padding-left: 0 !important; border-left: 0 !important; }
   .match-row { gap: 12px; flex-wrap: wrap; }
 }
+
+/* Players leaderboard (adapted from 21st.dev Leaderboard Table). */
+.leaderboard td { height: 56px; }
+.leaderboard tbody tr[aria-selected='true'] td { background: rgb(var(--color-accent) / .08); }
+.leaderboard tbody tr[aria-selected='true'] td:first-child { border-left-color: rgb(var(--color-accent)); }
+.sort-head { display: inline-flex; align-items: center; gap: 5px; font: inherit; color: inherit; }
+.sort-head:hover { color: rgb(var(--color-ink)); }
+.sort-head span { font-size: 8px; color: rgb(var(--color-accent)); }
+.medal { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; font-size: 12px; font-weight: 700; box-shadow: inset 0 0 0 1px currentColor; }
+.medal-gold { color: #f2c35b; background: rgb(242 195 91 / .14); }
+.medal-silver { color: #c9d1da; background: rgb(201 209 218 / .12); }
+.medal-bronze { color: #d4946a; background: rgb(212 148 106 / .14); }
+.page-stage { width: 100%; }
+.player-detail .workspace-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.player-detail .workspace-metric:nth-child(3) { border-left: 0; }
+.player-detail .workspace-metric:nth-child(n+3) { border-top: 1px solid rgb(var(--color-line) / .7); }
