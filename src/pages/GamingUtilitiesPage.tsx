@@ -91,7 +91,7 @@ export function GamingUtilitiesPage() {
     game.phase==='error'?'Windows game monitor unavailable':
     running?'VALORANT is running':'VALORANT is not running';
   return <div className="page-stage space-y-7">
-    <PageHeader eyebrow="Aventas / Device" title="Your system, in view."
+    <PageHeader eyebrow="Aventas / Device" title="Device"
       description="Lightweight Windows performance readings and safe game-session tools. No process injection, no opponent scanning."/>
     <section className="a-hero grid gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(240px,.85fr)]">
       <div className="flex flex-col justify-between p-7 sm:p-9">

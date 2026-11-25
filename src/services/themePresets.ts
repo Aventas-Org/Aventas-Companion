@@ -64,14 +64,14 @@ export interface ThemePreset {
   light?: ThemePalette;
 }
 
-/** Harks back to the original charcoal-and-red build. */
+/** Night-match slate with a trophy-gold accent: the default Companion look. */
 const DARK: ThemePalette = {
-  app: '#0D1118',
-  panel: '#171D25',
-  line: '#2A3441',
-  ink: '#F1F2F0',
-  inkMuted: '#A0ADBA',
-  accent: '#F16F63',
+  app: '#151A21',
+  panel: '#1C232C',
+  line: '#2D3642',
+  ink: '#E7EAEE',
+  inkMuted: '#8E98A6',
+  accent: '#E6AE48',
   background: 'none',
   scheme: 'dark',
 };

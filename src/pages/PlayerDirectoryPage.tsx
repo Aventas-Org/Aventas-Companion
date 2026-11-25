@@ -56,7 +56,7 @@ export function PlayerDirectoryPage(){
   }
 
   return <div className="page-stage space-y-7">
-    <PageHeader eyebrow="Aventas / Community" title="Player directory."
+    <PageHeader eyebrow="Aventas / Community" title="Player directory"
       description="Find public competitive profiles from the Aventas network. Only players who opted in on the website appear here."/>
     <section className="a-hero flex flex-col gap-6 p-7 lg:flex-row lg:items-end lg:justify-between lg:p-9">
       <div className="max-w-[480px]">
@@ -117,7 +117,7 @@ export function PlayerDirectoryPage(){
               <div className="flex items-center gap-4">
                 <span className="workspace-avatar !size-14 !text-[24px]">{active.riotId.slice(0,1).toUpperCase()}</span>
                 <div>
-                  <p className="page-kicker uppercase">Verified public listing</p>
+                  <p className="page-kicker">Verified public listing</p>
                   <h2 className="mt-1 font-display text-[23px] font-semibold tracking-[-.035em] text-ink">{active.riotId}<span className="text-ink-muted">#{active.tagline}</span></h2>
                   <p className="mt-1 text-[11px] text-ink-muted">{active.region||'Region unknown'} · Account level {formatMetric(active.accountLevel)}</p>
                 </div>

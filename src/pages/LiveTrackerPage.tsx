@@ -55,7 +55,7 @@ function AccountLogin() {
       </div>
     </div>
     <div className="a-panel flex flex-col justify-center p-7 sm:p-9">
-      <p className="page-kicker uppercase tracking-[.13em]">Existing members</p>
+      <p className="page-kicker">Existing members</p>
       <h2 className="mt-3 font-display text-[25px] font-semibold tracking-[-.03em] text-ink">Welcome back.</h2>
       <p className="mt-2 text-[12px] leading-6 text-ink-muted">Use your Aventas website email and password. Discord-only account sign-in requires a later authorization flow.</p>
       <form className="mt-7 space-y-5" onSubmit={event => void submit(event)}>
@@ -172,7 +172,7 @@ function TrackerContent({ tab, data, verified, onTab }: {
     if(!insights.length)return <EmptyWorkspace kicker="Coaching notes" title="Not enough match evidence."
       detail="Evidence-backed insights will appear after your website has sufficient authorized match and round history. This is not an AI-generated prediction of your performance."/>;
     return <div className="grid gap-4 lg:grid-cols-2">{insights.map((item,i)=><article className="workspace-panel p-6" key={String(item.id||i)}>
-      <p className="page-kicker uppercase">{String(item.category||'Performance insight')}</p>
+      <p className="page-kicker">{String(item.category||'Performance insight')}</p>
       <h3 className="mt-5 font-display text-[19px] font-semibold text-ink">{String(item.title||'Analysis')}</h3>
       <p className="mt-3 text-[12px] leading-6 text-ink-muted">{String(item.body||'')}</p>
       {item.stat!=null&&<div className="mt-5 border-t border-line pt-4 font-mono text-[13px] text-accent">{String(item.stat)}</div>}
@@ -239,7 +239,7 @@ export function LiveTrackerPage() {
   const meta=asRecord(profile?.meta),player=asRecord(profile?.player);
   const verified=meta.hasRiotLink===true && meta.isDemo!==true;
   return <div className="page-stage space-y-7">
-    <PageHeader eyebrow="Aventas / Intelligence" title="Player intelligence."
+    <PageHeader eyebrow="Aventas / Intelligence" title="Live tracker"
       description="A private view of your competitive history, connected to the same account as Aventas tournaments."
       action={phase==='signed-in'?<div className="flex items-center gap-2">
         <button className="a-button" type="button" onClick={()=>setRevision(n=>n+1)}>↻ Refresh</button>
@@ -252,7 +252,7 @@ export function LiveTrackerPage() {
         <div className="flex items-center gap-5">
           <span className="workspace-avatar !size-[68px] !rounded-[12px] !text-[27px]">{String(player.riotId||account?.name||'A').slice(0,1).toUpperCase()}</span>
           <div>
-            <p className="page-kicker uppercase">Your Aventas profile</p>
+            <p className="page-kicker">Your Aventas profile</p>
             <h2 className="mt-1 font-display text-[25px] font-semibold tracking-[-.035em] text-ink">
               {String(player.riotId||account?.name||'Player')}
               {meta.hasRiotLink===true&&<span className="text-ink-muted">#{String(player.tagline||'')}</span>}

@@ -5,10 +5,9 @@ export function PageHeader({ eyebrow, title, description, action }: {
   eyebrow: string; title: string; description: string; action?: ReactNode;
 }) {
   return <header className="flex flex-wrap items-end justify-between gap-4">
-    <div className="min-w-0">
-      <p className="page-kicker">{eyebrow}</p>
-      <h1 className="page-heading mt-2">{title}</h1>
-      <p className="page-description mt-3">{description}</p>
+    <div className="min-w-0" data-section={eyebrow}>
+      <h1 className="page-heading">{title}</h1>
+      <p className="page-description mt-1.5">{description}</p>
     </div>
     {action && <div className="flex shrink-0 items-center gap-2">{action}</div>}
   </header>;
@@ -17,7 +16,7 @@ export function PageHeader({ eyebrow, title, description, action }: {
 export function SectionHeading({ title, detail, trailing }: { title: string; detail?: string; trailing?: ReactNode }) {
   return <div className="flex flex-wrap items-center justify-between gap-3">
     <div>
-      <h2 className="font-display text-[18px] font-semibold tracking-[-.025em] text-ink">{title}</h2>
+      <h2 className="section-title">{title}</h2>
       {detail && <p className="mt-1 text-[12px] leading-5 text-ink-muted">{detail}</p>}
     </div>
     {trailing}
@@ -37,9 +36,7 @@ export function EmptyWorkspace({ kicker, title, detail, action }: {
   kicker?: string; title: string; detail: string; action?: ReactNode;
 }) {
   return <div className="a-empty relative overflow-hidden !p-7 md:!p-10">
-    <div className="pointer-events-none absolute -right-10 -top-16 size-52 rounded-full border border-line/50" aria-hidden="true"/>
-    <div className="pointer-events-none absolute right-4 top-0 size-28 rounded-full border border-line/40" aria-hidden="true"/>
-    {kicker && <p className="a-eyebrow relative mb-3 uppercase tracking-[.13em]">{kicker}</p>}
+    {kicker && <p className="a-eyebrow relative mb-2">{kicker}</p>}
     <p className="relative font-display text-[19px] font-semibold tracking-[-.02em] text-ink">{title}</p>
     <p className="relative mt-2 max-w-[480px] text-[12px] leading-6 text-ink-muted">{detail}</p>
     {action && <div className="relative mt-5">{action}</div>}

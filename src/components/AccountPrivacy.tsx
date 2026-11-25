@@ -48,7 +48,7 @@ export function AccountPrivacy() {
   return <section className="workspace-panel p-6 sm:p-7">
     <div className="flex flex-wrap items-start justify-between gap-3">
       <div>
-        <p className="page-kicker uppercase">Connected account / Privacy</p>
+        <p className="page-kicker">Connected account / Privacy</p>
         <h3 className="mt-2 font-display text-[19px] font-semibold text-ink">Player directory visibility</h3>
         <p className="mt-2 max-w-[600px] text-[12px] leading-6 text-ink-muted">
           Decide whether other Aventas users can find your Riot name, rank, region and aggregate performance.

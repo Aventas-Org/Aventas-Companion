@@ -22,39 +22,6 @@ function formatDate(timestamp?: number): string {
   return new Date(timestamp).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
-function SignalGlyph({ running, checking, unavailable }: { running: boolean; checking: boolean; unavailable: boolean }) {
-  return <div className="relative mx-auto flex size-[228px] items-center justify-center sm:size-[252px]" aria-hidden="true">
-    <div className={'absolute inset-0 rounded-full ' + (running ? 'bg-emerald-400/[0.045]' : 'bg-accent/[0.025]')} />
-    <svg viewBox="0 0 260 260" className={'absolute inset-0 size-full ' + (running ? 'text-emerald-400' : 'text-accent')} fill="none">
-      <circle cx="130" cy="130" r="115" stroke="currentColor" strokeOpacity=".17"/>
-      <circle cx="130" cy="130" r="100" stroke="currentColor" strokeOpacity=".35" strokeDasharray="3 10"/>
-      <circle cx="130" cy="130" r="81" stroke="currentColor" strokeOpacity=".17"/>
-      <path d="M130 0v38M130 222v38M0 130h38M222 130h38" stroke="currentColor" strokeOpacity=".36" strokeWidth="1.5"/>
-      <path d="M53 53l20 20M207 53l-20 20M53 207l20-20M207 207l-20-20" stroke="currentColor" strokeOpacity=".2"/>
-      <circle cx="130" cy="130" r="59" stroke="currentColor" strokeOpacity=".29" strokeWidth="7"/>
-      <path d="M130 46a84 84 0 0 1 84 84" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeOpacity=".7"/>
-      {running && <circle cx="130" cy="130" r="102" stroke="currentColor" strokeWidth="2" strokeDasharray="44 596" strokeLinecap="round" className="origin-center animate-[spin_14s_linear_infinite]"/>}
-    </svg>
-    <div className={'relative z-10 flex size-[112px] flex-col items-center justify-center rounded-full border ' + (running
-      ? 'border-emerald-400/35 bg-emerald-400/[0.08]' : 'border-line bg-app/85')}>
-      <CrosshairIcon width={32} height={32} className={running ? 'text-emerald-400' : 'text-accent'}/>
-      <span className="mt-2 font-display text-[12px] font-semibold text-ink">
-        {unavailable ? 'Unavailable' : checking ? 'Scanning' : running ? 'Game active' : 'On standby'}
-      </span>
-    </div>
-    <span className="absolute bottom-0 right-[-12px] rounded-[5px] border border-line bg-app px-2.5 py-1.5 font-mono text-[10px] text-ink-muted">
-      LOCAL / PC
-    </span>
-  </div>;
-}
-
-function ActionLink({ label, onClick, primary = false }: { label: string; onClick?: () => void; primary?: boolean }) {
-  return <button type="button" className={'a-button ' + (primary ? 'a-button-primary' : '')} onClick={onClick}>
-    {label}
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="15" height="15" aria-hidden="true"><path d="M4 12h16m-7-7 7 7-7 7"/></svg>
-  </button>;
-}
-
 export function OverviewPage({ onNavigate }: { onNavigate?: (id: NavId) => void }) {
   const status = useValorantStatus();
   const { phase, account } = useAventasAccount();
@@ -126,48 +93,44 @@ export function OverviewPage({ onNavigate }: { onNavigate?: (id: NavId) => void 
     checking ? 'Checking for VALORANT' : running ? 'VALORANT process running' :
     'VALORANT is not running';
 
-  return <div className="page-stage space-y-7">
-    <div className="flex flex-wrap items-end justify-between gap-3">
-      <div>
-        <p className="page-kicker">Aventas / Home</p>
-        <h1 className="page-heading mt-2">Your competitive desk.</h1>
-        <p className="page-description mt-3">Match history, tournaments and PC health — where you need them.</p>
-      </div>
-      <button type="button" className="a-button !py-2.5" onClick={() => setRevision(value => value + 1)}>
-        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="M20 6v5h-5M4 18v-5h5"/><path d="M5.5 10a7.5 7.5 0 0 1 12.8-3M18.5 14a7.5 7.5 0 0 1-12.8 3"/></svg>
-        Refresh dashboard
+  const nextEvent = events[0];
+  const cells = [
+    { label: 'Game', value: processLabel, tone: running ? 'live' : status.phase === 'error' ? 'warning' : 'idle',
+      detail: 'Read-only process check, no memory access' },
+    { label: 'Account', value: online ? (account?.name || 'Connected') : phase === 'checking' ? 'Connecting' : 'Not connected',
+      tone: online ? 'live' : 'idle', detail: online ? 'Synced with the Aventas website' : 'Connect to see your matches',
+      action: online ? undefined : { label: 'Connect', go: 'live' as NavId } },
+    { label: 'Next event', value: nextEvent ? nextEvent.name : eventStatus === 'loading' ? 'Checking' : 'Nothing scheduled',
+      tone: nextEvent?.status === 'live' ? 'live' : 'idle',
+      detail: nextEvent ? (nextEvent.status === 'live' ? 'In progress now' : formatDate(nextEvent.startsAt)) :
+        eventStatus === 'unavailable' ? 'Website did not respond' : 'Official Aventas events appear here',
+      action: { label: 'Brackets', go: 'tournaments' as NavId } },
+  ];
+
+  return <div className="page-stage space-y-6">
+    <div className="flex flex-wrap items-center justify-between gap-3">
+      <h1 className="page-heading">Overview</h1>
+      <button type="button" className="a-button" disabled={checking} onClick={() => setRevision(value => value + 1)}>
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="M20 6v5h-5M4 18v-5h5"/><path d="M5.5 10a7.5 7.5 0 0 1 12.8-3M18.5 14a7.5 7.5 0 0 1-12.8 3"/></svg>
+        Refresh
       </button>
     </div>
 
-    <section className="a-hero grid min-h-[310px] items-center gap-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(240px,.8fr)]">
-      <div className="p-7 sm:p-9 lg:p-11">
-        <span className="a-chip" data-tone={running ? 'live' : 'accent'}>
-          <span className="a-status-dot" />
-          {running ? 'Local session detected' : status.phase === 'error' ? 'Local detector offline' : 'Companion is ready'}
-        </span>
-        <h2 className="mt-6 max-w-[560px] font-display text-[34px] font-semibold leading-[1.08] tracking-[-.045em] text-ink sm:text-[43px]">
-          Every round starts<br/>with better context.
-        </h2>
-        <p className="mt-4 max-w-[470px] text-[13px] leading-7 text-ink-muted">
-          {running ? 'VALORANT is running. Review your own previous matches and keep upcoming competitions within reach.' :
-            'Open your personal tracker, review official event brackets, or explore the practice lab while your Riot connection is being prepared.'}
-        </p>
-        <div className="mt-7 flex flex-wrap gap-2.5">
-          <ActionLink primary label="Open Live Tracker" onClick={() => onNavigate?.('live')}/>
-          <ActionLink label="Browse tournaments" onClick={() => onNavigate?.('tournaments')}/>
+    <section aria-label="Session status" className="session-bar">
+      {cells.map(cell => <div key={cell.label} className="session-cell" data-tone={cell.tone}>
+        <p className="session-label">{cell.label}</p>
+        <p className="session-value" title={cell.value}>{cell.value}</p>
+        <div className="mt-1 flex items-center justify-between gap-3">
+          <p className="truncate text-[11px] text-ink-muted">{cell.detail}</p>
+          {cell.action && <button type="button" className="workspace-link shrink-0" onClick={() => onNavigate?.(cell.action!.go)}>{cell.action.label}</button>}
         </div>
-      </div>
-      <div className="flex flex-col items-center justify-center gap-2 pb-10 lg:pb-0 lg:pr-7">
-        <SignalGlyph running={running} checking={checking} unavailable={status.phase === 'error'}/>
-        <p className="mt-2 text-[12px] font-medium text-ink">{processLabel}</p>
-        <p className="text-center text-[11px] text-ink-muted">Read-only process detection · no game memory access</p>
-      </div>
+      </div>)}
     </section>
 
     <section aria-label="Account performance">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <h2 className="font-display text-[17px] font-semibold text-ink">Performance at a glance</h2>
+          <h2 className="section-title">Your numbers</h2>
           <span className="a-chip" data-tone={hasResults ? 'live' : 'warning'}>
             {hasResults ? 'Website records' : 'Not yet synced'}
           </span>
@@ -196,7 +159,7 @@ export function OverviewPage({ onNavigate }: { onNavigate?: (id: NavId) => void 
       <section className="a-panel min-w-0 overflow-hidden">
         <div className="flex items-center justify-between border-b border-line px-5 py-4">
           <div>
-            <h2 className="font-display text-[17px] font-semibold text-ink">Recent performance</h2>
+            <h2 className="section-title">Recent performance</h2>
             <p className="mt-1 text-[11px] text-ink-muted">Your completed matches on the Aventas website</p>
           </div>
           <button type="button" onClick={() => onNavigate?.('live')}
@@ -232,7 +195,7 @@ export function OverviewPage({ onNavigate }: { onNavigate?: (id: NavId) => void 
       <section className="a-panel min-w-0 overflow-hidden">
         <div className="flex items-center justify-between border-b border-line px-5 py-4">
           <div>
-            <h2 className="font-display text-[17px] font-semibold text-ink">Competition board</h2>
+            <h2 className="section-title">Competition board</h2>
             <p className="mt-1 text-[11px] text-ink-muted">Upcoming and active Aventas events</p>
           </div>
           <TrophyIcon width={20} height={20} className="text-accent"/>
@@ -267,7 +230,7 @@ export function OverviewPage({ onNavigate }: { onNavigate?: (id: NavId) => void 
         <h2 className="font-display text-[15px] font-semibold text-ink">Waiting for official Riot tracking?</h2>
         <p className="mt-1 text-[12px] leading-6 text-ink-muted">Explore sample round analysis in the Practice lab. Every practice screen is marked as demo data, so you can test the interface without mistaking it for live results.</p>
       </div>
-      <ActionLink label="Open Practice lab" onClick={() => onNavigate?.('performance')}/>
+      <button type="button" className="a-button" onClick={() => onNavigate?.('performance')}>Open Practice lab</button>
     </section>
   </div>;
 }

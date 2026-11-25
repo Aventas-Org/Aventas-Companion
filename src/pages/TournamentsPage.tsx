@@ -237,7 +237,7 @@ export function TournamentsPage() {
   },[selected,revision]);
 
   return <div className="page-stage space-y-7">
-    <PageHeader eyebrow="Aventas / Competition" title="Tournament control."
+    <PageHeader eyebrow="Aventas / Competition" title="Tournaments"
       description="Explore the official event calendar, inspect full brackets, and follow results published by Aventas."
       action={<button type="button" onClick={()=>setRevision(v=>v+1)} className="a-button">↻ Refresh events</button>}/>
     <div className="flex flex-wrap items-center justify-between gap-3">
@@ -271,7 +271,7 @@ export function TournamentsPage() {
       </section>
       <div className="a-panel-soft flex min-h-[220px] flex-col justify-center p-6">
         {!selected?<div>
-          <p className="page-kicker uppercase">Event details</p>
+          <p className="page-kicker">Event details</p>
           <h2 className="mt-4 font-display text-[24px] font-semibold text-ink">Select a tournament.</h2>
           <p className="mt-3 max-w-[380px] text-[12px] leading-6 text-ink-muted">
             View the official match tree and any approved scores. Registration stays on the website.

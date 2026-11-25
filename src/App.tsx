@@ -50,11 +50,9 @@ function Workbench() {
   return <div className="app-shell flex h-screen w-screen min-w-[320px] overflow-hidden text-ink">
     <Sidebar active={active} onNavigate={setActive} onSearch={() => setSearchOpen(true)}/>
     <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-      <header className="app-topbar z-20 flex h-[64px] shrink-0 items-center justify-between gap-4 px-5 xl:px-10">
+      <header className="app-topbar z-20 flex h-[48px] shrink-0 items-center justify-between gap-4 px-5 xl:px-10">
         <div className="flex min-w-0 items-center gap-3">
-          <span className="hidden text-[12px] font-semibold text-ink-muted md:inline">Companion</span>
-          <span className="hidden h-[13px] w-px bg-line md:inline" aria-hidden="true"/>
-          <span className="truncate font-display text-[14px] font-semibold text-ink">
+          <span className="truncate text-[12px] font-medium text-ink-muted">
             {item.label.startsWith('Demo: ') ? item.label.replace('Demo: ', '') : item.label}
           </span>
           {isDemo && <span className="a-chip hidden border-amber-500/25 text-amber-300 md:inline-flex">Sample data</span>}
@@ -67,8 +65,7 @@ function Workbench() {
           <span className="hidden h-5 w-px bg-line md:block"/>
           <button type="button" onClick={() => setSearchOpen(true)} className="a-button !px-3 !py-2" title="Find a page (Ctrl+K)">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.5"/><path d="m16 16 5 5"/></svg>
-            <span className="hidden sm:inline">Quick jump</span>
-            <kbd className="ml-1 hidden font-mono text-[10px] text-ink-muted lg:inline">Ctrl K</kbd>
+            <span className="sr-only">Find a page</span>
           </button>
         </div>
       </header>
